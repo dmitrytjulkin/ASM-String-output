@@ -2,23 +2,41 @@
 .code
 org 100h
 
-VIDEOSEG 		equ 0b800h
-START_OF_SENTENCE 	equ 000A0h 
+VIDEOSEG 		equ 0b800h 
+CENTER_OF_FRAME		equ 07CAh
+PLACE_OF_UPPER_BORDER	equ 00A0h
+PLACE_OF_LOWER_BORDER	equ 0FF60h
+
+;TODO: it can not read 19 symbols or more, also 7 symbols or less
 
 start:
 	mov ax, VIDEOSEG
 	mov es, ax
+
+	mov ax, PLACE_OF_UPPER_BORDER
+	neg ax
  
-	xor di, di
+	call BuildFrame
+
+	mov ax, 4c00h
+	int 21h
+;___________________________________________________________________________;
+
+
+;__BUILDFRAME__
+
+;___________________________________________________________________________;
+BuildFrame	proc
+	mov dx, PLACE_OF_UPPER_BORDER
 	call BuildBorder
 
 	call Sentence
 
-	mov di, 320
+	mov dx, PLACE_OF_LOWER_BORDER
 	call BuildBorder
 
-	mov ax, 4c00h
-	int 21h
+	ret
+	endp
 ;___________________________________________________________________________;
 
 
@@ -28,19 +46,26 @@ start:
 BuildBorder proc
 	call SetCycleCounter
 
-	mov al, 205		;al = upper border
-	mov ah, 70h		;ah = white colour on black
+	mov bx, cx
+	shr bx, 1
+	sub dx, CENTER_OF_FRAME
+	add bx, dx
+	neg bx
+	mov di, bx
+
+	mov al, 03h			;al = upper border
+	mov ah, 70h			;ah = white text on black background
 
 	xor bx, bx
 
-building_upper_border:
+building_border:
 	shl bx, 1
 	mov es:[di+bx], ax
 	shr bx, 1
 	
 	inc bx
 
-	loop building_upper_border
+	loop building_border
 
 	ret
 	endp
@@ -53,14 +78,20 @@ building_upper_border:
 Sentence 	proc
 	call SetCycleCounter
 
-	mov al, ds:[82h]
-	mov ah, 70h
+	mov bx, cx
+	shr bx, 1
+	sub bx, CENTER_OF_FRAME
+	neg bx
+	mov di, bx
+
+	mov al, ds:[82h]		;al = the 1st symbol of input
+	mov ah, 70h			;ah = white text on black background
 
 	xor bx, bx
 
 building_sentence:
 	shl bx, 1
-	mov es:[START_OF_SENTENCE+bx], ax
+	mov es:[di+bx], ax
 	shr bx, 1
 
 	inc bx
@@ -78,6 +109,7 @@ building_sentence:
 ;___________________________________________________________________________;
 SetCycleCounter proc
 	mov cl, ds:[80h]
+	mov ch, 00
 	dec cl
 
 	ret
