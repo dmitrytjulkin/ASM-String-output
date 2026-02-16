@@ -13,46 +13,48 @@ start:
 
 	call Sentence
 
+	call LowerBorder
+
 	mov ax, 4c00h
 	int 21h
 ;___________________________________________________________________________;
 
 ;__UPPERBORDER__
-;Searches
-;Entry:
-;Exit:
-;Destr:
 
 ;___________________________________________________________________________;
 UpperBorder proc
-	mov al, 03h		;al = upper border
+	call SetCycleCounter
+
+	mov al, 205		;al = upper border
 	mov ah, 70h		;ah = white colour on black
 
-	mov cx, 20		;cycle conter = 20
 	xor bx, bx
 
-BuildingUpperBorder:
+building_upper_border:
 	shl bx, 1
 	mov es:[bx], ax
 	shr bx, 1
 	
 	inc bx
 
-	loop BuildingUpperBorder
+	loop building_upper_border
 
 	ret
 	endp
 ;___________________________________________________________________________;
 
+;__SENTENCE__
+
 ;___________________________________________________________________________;
-Sentence proc
+Sentence 	proc
+	call SetCycleCounter
+
 	mov al, ds:[82h]
 	mov ah, 70h
 
-	mov cx, 20
 	xor bx, bx
 
-BuildingSentence:
+building_sentence:
 	shl bx, 1
 	mov es:[START_OF_SENTENCE+bx], ax
 	shr bx, 1
@@ -60,12 +62,45 @@ BuildingSentence:
 	inc bx
 	mov al, ds:[82h+bx]
 
-	loop BuildingSentence
+	loop building_sentence
 
 	ret
 	endp
 ;___________________________________________________________________________;
 
+;__LOWERBORDER__
+
 ;___________________________________________________________________________;
+LowerBorder	proc
+	call SetCycleCounter
+
+	mov al, 205
+	mov ah, 70h
+
+	xor bx, bx 
+
+building_lower_border:
+	shl bx, 1
+	mov es:[320+bx], ax
+	shr bx, 1
+
+	inc bx
+
+	loop building_lower_border
+
+	ret
+	endp
+;___________________________________________________________________________;
+
+;__SETCYCLECOUNTER__
+
+;___________________________________________________________________________;
+SetCycleCounter proc
+	mov cl, ds:[80h]
+	dec cl
+
+	ret
+	endp
+;__________________________________________________________________________;
 
 end		Start
