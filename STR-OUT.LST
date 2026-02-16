@@ -1,0 +1,119 @@
+Turbo Assembler	 Version 4.1	    02/16/26 16:19:45	    Page 1
+str-out.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3				     org 100h
+      4
+      5	      =B800		     VIDEOSEG		     equ 0b800h
+      6	      =00A0		     START_OF_SENTENCE	     equ 000A0h
+      7
+      8	0100			     start:
+      9	0100  B8 B800			     mov ax, VIDEOSEG
+     10	0103  8E C0			     mov es, ax
+     11
+     12	0105  E8 0008			     call UpperBorder
+     13
+     14	0108  E8 0019			     call Sentence
+     15
+     16	010B  B8 4C00			     mov ax, 4c00h
+     17	010E  CD 21			     int 21h
+     18				     ;___________________________________________________________________________;
+     19
+     20				     ;__UPPERBORDER__
+     21				     ;Searches
+     22				     ;Entry:
+     23				     ;Exit:
+     24				     ;Destr:
+     25
+     26				     ;___________________________________________________________________________;
+     27	0110			     UpperBorder proc
+     28	0110  B0 03			     mov al, 03h	     ;al = upper border
+     29	0112  B4 70			     mov ah, 70h	     ;ah = white colour	on black
+     30
+     31	0114  B9 0014			     mov cx, 20		     ;cycle conter = 20
+     32	0117  33 DB			     xor bx, bx
+     33
+     34	0119			     BuildingUpperBorder:
+     35	0119  D1 E3			     shl bx, 1
+     36	011B  26: 89 07			     mov es:[bx], ax
+     37	011E  D1 EB			     shr bx, 1
+     38
+     39	0120  43			     inc bx
+     40
+     41	0121  E2 F6			     loop BuildingUpperBorder
+     42
+     43	0123  C3			     ret
+     44	0124				     endp
+     45				     ;___________________________________________________________________________;
+     46
+     47				     ;___________________________________________________________________________;
+     48	0124			     Sentence proc
+     49	0124  A0 0082			     mov al, ds:[82h]
+     50	0127  B4 70			     mov ah, 70h
+     51
+     52	0129  B9 0014			     mov cx, 20
+     53	012C  33 DB			     xor bx, bx
+     54
+     55	012E			     BuildingSentence:
+     56	012E  D1 E3			     shl bx, 1
+     57	0130  26: 89 87	00A0		     mov es:[START_OF_SENTENCE+bx], ax
+Turbo Assembler	 Version 4.1	    02/16/26 16:19:45	    Page 2
+str-out.asm
+
+
+
+     58	0135  D1 EB			     shr bx, 1
+     59
+     60	0137  43			     inc bx
+     61	0138  8A 87 0082		     mov al, ds:[82h+bx]
+     62
+     63	013C  E2 F0			     loop BuildingSentence
+     64
+     65	013E  C3			     ret
+     66	013F				     endp
+     67				     ;___________________________________________________________________________;
+     68
+     69				     ;___________________________________________________________________________;
+     70
+     71				     end	     Start
+Turbo Assembler	 Version 4.1	    02/16/26 16:19:45	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/16/26"
+??FILENAME			  Text	 "str-out "
+??TIME				  Text	 "16:19:45"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 STR-OUT
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+BUILDINGSENTENCE		  Near	 DGROUP:012E
+BUILDINGUPPERBORDER		  Near	 DGROUP:0119
+SENTENCE			  Near	 DGROUP:0124
+START				  Near	 DGROUP:0100
+START_OF_SENTENCE		  Number 00A0
+UPPERBORDER			  Near	 DGROUP:0110
+VIDEOSEG			  Number B800
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  013F Word	  Public  CODE
+
