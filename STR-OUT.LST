@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/16/26 20:19:29	    Page 1
+Turbo Assembler	 Version 4.1	    02/16/26 20:34:04	    Page 1
 str-out.asm
 
 
@@ -14,107 +14,109 @@ str-out.asm
       9	0100  B8 B800			     mov ax, VIDEOSEG
      10	0103  8E C0			     mov es, ax
      11
-     12	0105  E8 000B			     call UpperBorder
-     13
-     14	0108  E8 001C			     call Sentence
-     15
-     16	010B  E8 0034			     call LowerBorder
-     17
-     18	010E  B8 4C00			     mov ax, 4c00h
-     19	0111  CD 21			     int 21h
-     20				     ;___________________________________________________________________________;
-     21
-     22				     ;__UPPERBORDER__
+     12	0105  33 FF			     xor di, di
+     13	0107  E8 000E			     call UpperBorder
+     14
+     15	010A  E8 001F			     call Sentence
+     16
+     17	010D  BF 0140			     mov di, 320
+     18	0110  E8 0005			     call UpperBorder
+     19
+     20	0113  B8 4C00			     mov ax, 4c00h
+     21	0116  CD 21			     int 21h
+     22				     ;___________________________________________________________________________;
      23
-     24				     ;___________________________________________________________________________;
-     25	0113			     UpperBorder proc
-     26	0113  E8 0042			     call SetCycleCounter
-     27
-     28	0116  B0 CD			     mov al, 205	     ;al = upper border
-     29	0118  B4 70			     mov ah, 70h	     ;ah = white colour	on black
-     30
-     31	011A  33 DB			     xor bx, bx
+     24				     ;__UPPERBORDER__
+     25
+     26				     ;___________________________________________________________________________;
+     27	0118			     UpperBorder proc
+     28	0118  E8 0042			     call SetCycleCounter
+     29
+     30	011B  B0 CD			     mov al, 205	     ;al = upper border
+     31	011D  B4 70			     mov ah, 70h	     ;ah = white colour	on black
      32
-     33	011C			     building_upper_border:
-     34	011C  D1 E3			     shl bx, 1
-     35	011E  26: 89 07			     mov es:[bx], ax
-     36	0121  D1 EB			     shr bx, 1
-     37
-     38	0123  43			     inc bx
+     33	011F  33 DB			     xor bx, bx
+     34
+     35	0121			     building_upper_border:
+     36	0121  D1 E3			     shl bx, 1
+     37	0123  26: 89 01			     mov es:[di+bx], ax
+     38	0126  D1 EB			     shr bx, 1
      39
-     40	0124  E2 F6			     loop building_upper_border
+     40	0128  43			     inc bx
      41
-     42	0126  C3			     ret
-     43	0127				     endp
-     44				     ;___________________________________________________________________________;
-     45
-     46				     ;__SENTENCE__
+     42	0129  E2 F6			     loop building_upper_border
+     43
+     44	012B  C3			     ret
+     45	012C				     endp
+     46				     ;___________________________________________________________________________;
      47
-     48				     ;___________________________________________________________________________;
-     49	0127			     Sentence	     proc
-     50	0127  E8 002E			     call SetCycleCounter
-     51
-     52	012A  A0 0082			     mov al, ds:[82h]
-     53	012D  B4 70			     mov ah, 70h
-     54
-     55	012F  33 DB			     xor bx, bx
+     48				     ;__SENTENCE__
+     49
+     50				     ;___________________________________________________________________________;
+     51	012C			     Sentence	     proc
+     52	012C  E8 002E			     call SetCycleCounter
+     53
+     54	012F  A0 0082			     mov al, ds:[82h]
+     55	0132  B4 70			     mov ah, 70h
      56
-     57	0131			     building_sentence:
-Turbo Assembler	 Version 4.1	    02/16/26 20:19:29	    Page 2
+     57	0134  33 DB			     xor bx, bx
+Turbo Assembler	 Version 4.1	    02/16/26 20:34:04	    Page 2
 str-out.asm
 
 
 
-     58	0131  D1 E3			     shl bx, 1
-     59	0133  26: 89 87	00A0		     mov es:[START_OF_SENTENCE+bx], ax
-     60	0138  D1 EB			     shr bx, 1
-     61
-     62	013A  43			     inc bx
-     63	013B  8A 87 0082		     mov al, ds:[82h+bx]
-     64
-     65	013F  E2 F0			     loop building_sentence
+     58
+     59	0136			     building_sentence:
+     60	0136  D1 E3			     shl bx, 1
+     61	0138  26: 89 87	00A0		     mov es:[START_OF_SENTENCE+bx], ax
+     62	013D  D1 EB			     shr bx, 1
+     63
+     64	013F  43			     inc bx
+     65	0140  8A 87 0082		     mov al, ds:[82h+bx]
      66
-     67	0141  C3			     ret
-     68	0142				     endp
-     69				     ;___________________________________________________________________________;
-     70
-     71				     ;__LOWERBORDER__
+     67	0144  E2 F0			     loop building_sentence
+     68
+     69	0146  C3			     ret
+     70	0147				     endp
+     71				     ;___________________________________________________________________________;
      72
-     73				     ;___________________________________________________________________________;
-     74	0142			     LowerBorder     proc
-     75	0142  E8 0013			     call SetCycleCounter
-     76
-     77	0145  B0 CD			     mov al, 205
-     78	0147  B4 70			     mov ah, 70h
-     79
-     80	0149  33 DB			     xor bx, bx
+     73				     ;__LOWERBORDER__
+     74
+     75				     ;___________________________________________________________________________;
+     76	0147			     LowerBorder     proc
+     77	0147  E8 0013			     call SetCycleCounter
+     78
+     79	014A  B0 CD			     mov al, 205
+     80	014C  B4 70			     mov ah, 70h
      81
-     82	014B			     building_lower_border:
-     83	014B  D1 E3			     shl bx, 1
-     84	014D  26: 89 87	0140		     mov es:[320+bx], ax
-     85	0152  D1 EB			     shr bx, 1
-     86
-     87	0154  43			     inc bx
+     82	014E  33 DB			     xor bx, bx
+     83
+     84	0150			     building_lower_border:
+     85	0150  D1 E3			     shl bx, 1
+     86	0152  26: 89 87	0140		     mov es:[2*160+bx],	ax
+     87	0157  D1 EB			     shr bx, 1
      88
-     89	0155  E2 F4			     loop building_lower_border
+     89	0159  43			     inc bx
      90
-     91	0157  C3			     ret
-     92	0158				     endp
-     93				     ;___________________________________________________________________________;
-     94
-     95				     ;__SETCYCLECOUNTER__
+     91	015A  E2 F4			     loop building_lower_border
+     92
+     93	015C  C3			     ret
+     94	015D				     endp
+     95				     ;___________________________________________________________________________;
      96
-     97				     ;___________________________________________________________________________;
-     98	0158			     SetCycleCounter proc
-     99	0158  8A 0E 0080		     mov cl, ds:[80h]
-    100	015C  FE C9			     dec cl
-    101
-    102	015E  C3			     ret
-    103	015F				     endp
-    104				     ;__________________________________________________________________________;
-    105
-    106				     end	     Start
-Turbo Assembler	 Version 4.1	    02/16/26 20:19:29	    Page 3
+     97				     ;__SETCYCLECOUNTER__
+     98
+     99				     ;___________________________________________________________________________;
+    100	015D			     SetCycleCounter proc
+    101	015D  8A 0E 0080		     mov cl, ds:[80h]
+    102	0161  FE C9			     dec cl
+    103
+    104	0163  C3			     ret
+    105	0164				     endp
+    106				     ;__________________________________________________________________________;
+    107
+    108				     end	     Start
+Turbo Assembler	 Version 4.1	    02/16/26 20:34:04	    Page 3
 Symbol Table
 
 
@@ -124,7 +126,7 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "02/16/26"
 ??FILENAME			  Text	 "str-out "
-??TIME				  Text	 "20:19:29"
+??TIME				  Text	 "20:34:04"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -138,20 +140,20 @@ Symbol Name			  Type	 Value
 @MODEL				  Text	 1
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
-BUILDING_LOWER_BORDER		  Near	 DGROUP:014B
-BUILDING_SENTENCE		  Near	 DGROUP:0131
-BUILDING_UPPER_BORDER		  Near	 DGROUP:011C
-LOWERBORDER			  Near	 DGROUP:0142
-SENTENCE			  Near	 DGROUP:0127
-SETCYCLECOUNTER			  Near	 DGROUP:0158
+BUILDING_LOWER_BORDER		  Near	 DGROUP:0150
+BUILDING_SENTENCE		  Near	 DGROUP:0136
+BUILDING_UPPER_BORDER		  Near	 DGROUP:0121
+LOWERBORDER			  Near	 DGROUP:0147
+SENTENCE			  Near	 DGROUP:012C
+SETCYCLECOUNTER			  Near	 DGROUP:015D
 START				  Near	 DGROUP:0100
 START_OF_SENTENCE		  Number 00A0
-UPPERBORDER			  Near	 DGROUP:0113
+UPPERBORDER			  Near	 DGROUP:0118
 VIDEOSEG			  Number B800
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  015F Word	  Public  CODE
+  _TEXT				  16  0164 Word	  Public  CODE
 

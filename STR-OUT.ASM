@@ -8,21 +8,24 @@ START_OF_SENTENCE 	equ 000A0h
 start:
 	mov ax, VIDEOSEG
 	mov es, ax
-
-	call UpperBorder
+ 
+	xor di, di
+	call BuildBorder
 
 	call Sentence
 
-	call LowerBorder
+	mov di, 320
+	call BuildBorder
 
 	mov ax, 4c00h
 	int 21h
 ;___________________________________________________________________________;
 
+
 ;__UPPERBORDER__
 
 ;___________________________________________________________________________;
-UpperBorder proc
+BuildBorder proc
 	call SetCycleCounter
 
 	mov al, 205		;al = upper border
@@ -32,7 +35,7 @@ UpperBorder proc
 
 building_upper_border:
 	shl bx, 1
-	mov es:[bx], ax
+	mov es:[di+bx], ax
 	shr bx, 1
 	
 	inc bx
@@ -42,6 +45,7 @@ building_upper_border:
 	ret
 	endp
 ;___________________________________________________________________________;
+
 
 ;__SENTENCE__
 
@@ -68,29 +72,6 @@ building_sentence:
 	endp
 ;___________________________________________________________________________;
 
-;__LOWERBORDER__
-
-;___________________________________________________________________________;
-LowerBorder	proc
-	call SetCycleCounter
-
-	mov al, 205
-	mov ah, 70h
-
-	xor bx, bx 
-
-building_lower_border:
-	shl bx, 1
-	mov es:[320+bx], ax
-	shr bx, 1
-
-	inc bx
-
-	loop building_lower_border
-
-	ret
-	endp
-;___________________________________________________________________________;
 
 ;__SETCYCLECOUNTER__
 
