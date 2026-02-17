@@ -54,7 +54,7 @@ BuildBorder proc
 	neg bx
 	mov di, bx
 
-	mov al, 03h			;al = upper border
+	mov al, 0cdh			;al = upper border
 	mov ah, 70h			;ah = white text on black background
 
 	xor bx, bx
@@ -86,11 +86,15 @@ Sentence 	proc
 	neg bx
 	mov di, bx
 
+	mov al, 0bah 
+	mov ah, 70h
+	mov es:[di-2], ax		;printing left border
+
 	mov al, ds:[82h]		;al = the 1st symbol of input
 	mov ah, 70h			;ah = white text on black background
 
 	xor bx, bx
-
+	
 building_sentence:
 	shl bx, 1
 	mov es:[di+bx], ax
@@ -100,6 +104,11 @@ building_sentence:
 	mov al, ds:[82h+bx]
 
 	loop building_sentence
+
+	shl bx, 1
+	mov al, 0bah
+	mov ah, 70h
+	mov es:[di+bx], ax		;printing right border
 
 	ret
 	endp
