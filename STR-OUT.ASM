@@ -48,6 +48,7 @@ BuildBorder proc
 
 	mov bx, cx
 	shr bx, 1
+	shl bx, 1
 	sub dx, CENTER_OF_FRAME
 	add bx, dx
 	neg bx
@@ -62,7 +63,7 @@ building_border:
 	shl bx, 1
 	mov es:[di+bx], ax
 	shr bx, 1
-	
+
 	inc bx
 
 	loop building_border
@@ -80,6 +81,7 @@ Sentence 	proc
 
 	mov bx, cx
 	shr bx, 1
+	shl bx, 1
 	sub bx, CENTER_OF_FRAME
 	neg bx
 	mov di, bx
