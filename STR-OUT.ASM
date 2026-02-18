@@ -25,17 +25,17 @@ start:
 BuildFrame		proc
 	mov ah, TEXT_COLOR			;init color of text
 
-	call BuildTopLeftCorner
+	call BuildTopCorners
 
 	mov dx, PLACE_OF_UPPER_BORDER
 	call BuildBorder
-
-;	call BuildTopRightCorner
 
 	call Sentence
 
 	mov dx, PLACE_OF_LOWER_BORDER
 	call BuildBorder
+
+	call BuildBottomCorners
 
 	ret
 	endp
@@ -46,11 +46,10 @@ BuildFrame		proc
 
 ;___________________________________________________________________________;
 BuildBorder	 proc
-	call SetCycleCounter
+	call FindInputStrlen
 
 	mov bx, cx
-	shr bx, 1
-	shl bx, 1
+	call RoundBxToEvenNum
 	sub dx, CENTER_OF_FRAME
 	add bx, dx			;choose if it top border or bottom
 	neg bx
@@ -78,11 +77,10 @@ building_border:
 
 ;___________________________________________________________________________;
 Sentence 		proc
-	call SetCycleCounter
+	call FindInputStrlen
 
 	mov bx, cx
-	shr bx, 1
-	shl bx, 1
+	call RoundBxToEvenNum
 	sub bx, CENTER_OF_FRAME
 	neg bx
 	mov di, bx
@@ -114,12 +112,11 @@ building_sentence:
 
 
 ;___________________________________________________________________________;
-BuildTopLeftCorner	proc
-	call SetCycleCounter	
+BuildTopCorners		proc
+	call FindInputStrlen	
 	
 	mov bx, cx
-	shr bx, 1
-	shl bx, 1
+	call RoundBxToEvenNum
 	mov dx, PLACE_OF_UPPER_BORDER
 	sub dx, CENTER_OF_FRAME
 	add bx, dx
@@ -127,8 +124,40 @@ BuildTopLeftCorner	proc
 	mov di, bx
 
 	mov al, 0c9h			;al = top left corner
+	sub di, 2			;di = the start of top border
+	mov es:[di], ax
 
-	mov es:[di-2], ax
+	shl cx, 1
+
+	mov al, 0bbh			;al = top right corner
+	add di, cx			;di = the end of top border
+	mov es:[di+2], ax			
+
+	ret
+	endp
+;___________________________________________________________________________;
+
+;___________________________________________________________________________;
+BuildBottomCorners	proc
+	call FindInputStrlen
+
+	mov bx, cx
+	call RoundBxToEvenNum
+	mov dx, PLACE_OF_LOWER_BORDER
+	sub dx, CENTER_OF_FRAME
+	add bx, dx
+	neg bx
+	mov di, bx
+
+	mov al, 0c8h
+	sub di, 2
+	mov es:[di], ax
+
+	shl cx, 1
+	
+	mov al, 0bch
+	add di, cx
+	mov es:[di+2], ax	
 
 	ret
 	endp
@@ -137,7 +166,7 @@ BuildTopLeftCorner	proc
 ;__SETCYCLECOUNTER__
 
 ;___________________________________________________________________________;
-SetCycleCounter		proc
+FindInputStrlen	proc
 	mov cl, ds:[80h]
 	mov ch, 00
 	dec cl
