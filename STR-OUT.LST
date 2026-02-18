@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/17/26 12:01:47	    Page 1
+Turbo Assembler	 Version 4.1	    02/18/26 17:48:55	    Page 1
 str-out.asm
 
 
@@ -11,139 +11,167 @@ str-out.asm
       6	      =07CA		     CENTER_OF_FRAME	     equ 07CAh
       7	      =00A0		     PLACE_OF_UPPER_BORDER   equ 00A0h
       8	      =FF60		     PLACE_OF_LOWER_BORDER   equ 0FF60h
-      9
-     10				     ;TODO: it can not read 19 symbols or more,	also 7 symbols or less
-     11
-     12	0100			     start:
-     13	0100  B8 B800			     mov ax, VIDEOSEG
-     14	0103  8E C0			     mov es, ax
-     15
-     16	0105  B8 00A0			     mov ax, PLACE_OF_UPPER_BORDER
-     17	0108  F7 D8			     neg ax
-     18
-     19	010A  E8 0005			     call BuildFrame
+      9	      =0070		     TEXT_COLOR		     equ 0070h
+     10
+     11	0100			     start:
+     12	0100  B8 B800			     mov ax, VIDEOSEG
+     13	0103  8E C0			     mov es, ax
+     14
+     15	0105  E8 0005			     call BuildFrame
+     16
+     17	0108  B8 4C00			     mov ax, 4c00h
+     18	010B  CD 21			     int 21h
+     19				     ;___________________________________________________________________________;
      20
-     21	010D  B8 4C00			     mov ax, 4c00h
-     22	0110  CD 21			     int 21h
-     23				     ;___________________________________________________________________________;
-     24
-     25
-     26				     ;__BUILDFRAME__
+     21
+     22				     ;__BUILDFRAME__
+     23
+     24				     ;___________________________________________________________________________;
+     25	010D			     BuildFrame		     proc
+     26	010D  B4 70			     mov ah, TEXT_COLOR			     ;init color of text
      27
-     28				     ;___________________________________________________________________________;
-     29	0112			     BuildFrame	     proc
+     28	010F  E8 0064			     call BuildTopLeftCorner
+     29
      30	0112  BA 00A0			     mov dx, PLACE_OF_UPPER_BORDER
      31	0115  E8 000A			     call BuildBorder
      32
-     33	0118  E8 002B			     call Sentence
+     33				     ;	     call BuildTopRightCorner
      34
-     35	011B  BA FF60			     mov dx, PLACE_OF_LOWER_BORDER
-     36	011E  E8 0001			     call BuildBorder
-     37
-     38	0121  C3			     ret
-     39	0122				     endp
-     40				     ;___________________________________________________________________________;
-     41
-     42
-     43				     ;__UPPERBORDER__
+     35	0118  E8 0029			     call Sentence
+     36
+     37	011B  BA FF60			     mov dx, PLACE_OF_LOWER_BORDER
+     38	011E  E8 0001			     call BuildBorder
+     39
+     40	0121  C3			     ret
+     41	0122				     endp
+     42				     ;___________________________________________________________________________;
+     43
      44
-     45				     ;___________________________________________________________________________;
-     46	0122			     BuildBorder proc
-     47	0122  E8 0059			     call SetCycleCounter
-     48
-     49	0125  8B D9			     mov bx, cx
-     50	0127  D1 EB			     shr bx, 1
-     51	0129  D1 E3			     shl bx, 1
-     52	012B  81 EA 07CA		     sub dx, CENTER_OF_FRAME
-     53	012F  03 DA			     add bx, dx
-     54	0131  F7 DB			     neg bx
-     55	0133  8B FB			     mov di, bx
-     56
-     57	0135  B0 CD			     mov al, 0cdh		     ;al = upper border
-Turbo Assembler	 Version 4.1	    02/17/26 12:01:47	    Page 2
+     45				     ;__UPPERBORDER__
+     46
+     47				     ;___________________________________________________________________________;
+     48	0122			     BuildBorder      proc
+     49	0122  E8 006E			     call SetCycleCounter
+     50
+     51	0125  8B D9			     mov bx, cx
+     52	0127  D1 EB			     shr bx, 1
+     53	0129  D1 E3			     shl bx, 1
+     54	012B  81 EA 07CA		     sub dx, CENTER_OF_FRAME
+     55	012F  03 DA			     add bx, dx			     ;choose if	it top border or bottom
+     56	0131  F7 DB			     neg bx
+     57	0133  8B FB			     mov di, bx			     ;di = place to print
+Turbo Assembler	 Version 4.1	    02/18/26 17:48:55	    Page 2
 str-out.asm
 
 
 
-     58	0137  B4 70			     mov ah, 70h		     ;ah = white text on black background
-     59
-     60	0139  33 DB			     xor bx, bx
-     61
-     62	013B			     building_border:
-     63	013B  D1 E3			     shl bx, 1
-     64	013D  26: 89 01			     mov es:[di+bx], ax
-     65	0140  D1 EB			     shr bx, 1
-     66
-     67	0142  43			     inc bx
-     68
-     69	0143  E2 F6			     loop building_border
-     70
-     71	0145  C3			     ret
-     72	0146				     endp
-     73				     ;___________________________________________________________________________;
-     74
+     58
+     59	0135  B0 CD			     mov al, 0cdh		     ;al = double horizontal border
+     60
+     61	0137  33 DB			     xor bx, bx
+     62
+     63	0139			     building_border:
+     64	0139  D1 E3			     shl bx, 1
+     65	013B  26: 89 01			     mov es:[di+bx], ax
+     66	013E  D1 EB			     shr bx, 1
+     67
+     68	0140  43			     inc bx
+     69
+     70	0141  E2 F6			     loop building_border
+     71
+     72	0143  C3			     ret
+     73	0144				     endp
+     74				     ;___________________________________________________________________________;
      75
-     76				     ;__SENTENCE__
-     77
-     78				     ;___________________________________________________________________________;
-     79	0146			     Sentence	     proc
-     80	0146  E8 0035			     call SetCycleCounter
-     81
-     82	0149  8B D9			     mov bx, cx
-     83	014B  D1 EB			     shr bx, 1
-     84	014D  D1 E3			     shl bx, 1
-     85	014F  81 EB 07CA		     sub bx, CENTER_OF_FRAME
-     86	0153  F7 DB			     neg bx
-     87	0155  8B FB			     mov di, bx
-     88
-     89	0157  B0 BA			     mov al, 0bah
-     90	0159  B4 70			     mov ah, 70h
-     91	015B  26: 89 45	FE		     mov es:[di-2], ax		     ;printing left border
+     76
+     77				     ;__SENTENCE__
+     78
+     79				     ;___________________________________________________________________________;
+     80	0144			     Sentence		     proc
+     81	0144  E8 004C			     call SetCycleCounter
+     82
+     83	0147  8B D9			     mov bx, cx
+     84	0149  D1 EB			     shr bx, 1
+     85	014B  D1 E3			     shl bx, 1
+     86	014D  81 EB 07CA		     sub bx, CENTER_OF_FRAME
+     87	0151  F7 DB			     neg bx
+     88	0153  8B FB			     mov di, bx
+     89
+     90	0155  B0 BA			     mov al, 0bah
+     91	0157  26: 89 45	FE		     mov es:[di-2], ax		     ;printing left border
      92
-     93	015F  A0 0082			     mov al, ds:[82h]		     ;al = the 1st symbol of input
-     94	0162  B4 70			     mov ah, 70h		     ;ah = white text on black background
-     95
-     96	0164  33 DB			     xor bx, bx
-     97
-     98	0166			     building_sentence:
-     99	0166  D1 E3			     shl bx, 1
-    100	0168  26: 89 01			     mov es:[di+bx], ax
-    101	016B  D1 EB			     shr bx, 1
-    102
-    103	016D  43			     inc bx
-    104	016E  8A 87 0082		     mov al, ds:[82h+bx]
-    105
-    106	0172  E2 F2			     loop building_sentence
-    107
-    108	0174  D1 E3			     shl bx, 1
-    109	0176  B0 BA			     mov al, 0bah
-    110	0178  B4 70			     mov ah, 70h
-    111	017A  26: 89 01			     mov es:[di+bx], ax		     ;printing right border
-    112
-    113	017D  C3			     ret
-    114	017E				     endp
-Turbo Assembler	 Version 4.1	    02/17/26 12:01:47	    Page 3
+     93	015B  A0 0082			     mov al, ds:[82h]		     ;al = the 1st symbol of input
+     94
+     95	015E  33 DB			     xor bx, bx
+     96
+     97	0160			     building_sentence:
+     98	0160  D1 E3			     shl bx, 1
+     99	0162  26: 89 01			     mov es:[di+bx], ax
+    100	0165  D1 EB			     shr bx, 1
+    101
+    102	0167  43			     inc bx
+    103	0168  8A 87 0082		     mov al, ds:[82h+bx]
+    104
+    105	016C  E2 F2			     loop building_sentence
+    106
+    107	016E  D1 E3			     shl bx, 1
+    108	0170  B0 BA			     mov al, 0bah
+    109	0172  26: 89 01			     mov es:[di+bx], ax		     ;printing right border
+    110
+    111	0175  C3			     ret
+    112	0176				     endp
+    113				     ;___________________________________________________________________________;
+    114
+Turbo Assembler	 Version 4.1	    02/18/26 17:48:55	    Page 3
 str-out.asm
 
 
 
-    115				     ;___________________________________________________________________________;
-    116
-    117
-    118				     ;__SETCYCLECOUNTER__
+    115
+    116				     ;___________________________________________________________________________;
+    117	0176			     BuildTopLeftCorner	     proc
+    118	0176  E8 001A			     call SetCycleCounter
     119
-    120				     ;___________________________________________________________________________;
-    121	017E			     SetCycleCounter proc
-    122	017E  8A 0E 0080		     mov cl, ds:[80h]
-    123	0182  B5 00			     mov ch, 00
-    124	0184  FE C9			     dec cl
-    125
-    126	0186  C3			     ret
-    127	0187				     endp
-    128				     ;__________________________________________________________________________;
-    129
-    130				     end	     Start
-Turbo Assembler	 Version 4.1	    02/17/26 12:01:47	    Page 4
+    120	0179  8B D9			     mov bx, cx
+    121	017B  D1 EB			     shr bx, 1
+    122	017D  D1 E3			     shl bx, 1
+    123	017F  BA 00A0			     mov dx, PLACE_OF_UPPER_BORDER
+    124	0182  81 EA 07CA		     sub dx, CENTER_OF_FRAME
+    125	0186  03 DA			     add bx, dx
+    126	0188  F7 DB			     neg bx
+    127	018A  8B FB			     mov di, bx
+    128
+    129	018C  B0 C9			     mov al, 0c9h		     ;al = top left corner
+    130
+    131	018E  26: 89 45	FE		     mov es:[di-2], ax
+    132
+    133	0192  C3			     ret
+    134	0193				     endp
+    135				     ;___________________________________________________________________________;
+    136
+    137				     ;__SETCYCLECOUNTER__
+    138
+    139				     ;___________________________________________________________________________;
+    140	0193			     SetCycleCounter	     proc
+    141	0193  8A 0E 0080		     mov cl, ds:[80h]
+    142	0197  B5 00			     mov ch, 00
+    143	0199  FE C9			     dec cl
+    144
+    145	019B  C3			     ret
+    146	019C				     endp
+    147				     ;__________________________________________________________________________;
+    148
+    149				     ;__________________________________________________________________________;
+    150	019C			     RoundBxToEvenNum		     proc
+    151	019C  D1 EB			     shr bx, 1
+    152	019E  D1 E3			     shl bx, 1
+    153
+    154	01A0  C3			     ret
+    155	01A1				     endp
+    156				     ;__________________________________________________________________________;
+    157
+    158				     end	     Start
+Turbo Assembler	 Version 4.1	    02/18/26 17:48:55	    Page 4
 Symbol Table
 
 
@@ -151,9 +179,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "02/17/26"
+??DATE				  Text	 "02/18/26"
 ??FILENAME			  Text	 "str-out "
-??TIME				  Text	 "12:01:47"
+??TIME				  Text	 "17:48:55"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -168,20 +196,23 @@ Symbol Name			  Type	 Value
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
 BUILDBORDER			  Near	 DGROUP:0122
-BUILDFRAME			  Near	 DGROUP:0112
-BUILDING_BORDER			  Near	 DGROUP:013B
-BUILDING_SENTENCE		  Near	 DGROUP:0166
+BUILDFRAME			  Near	 DGROUP:010D
+BUILDING_BORDER			  Near	 DGROUP:0139
+BUILDING_SENTENCE		  Near	 DGROUP:0160
+BUILDTOPLEFTCORNER		  Near	 DGROUP:0176
 CENTER_OF_FRAME			  Number 07CA
 PLACE_OF_LOWER_BORDER		  Number FF60
 PLACE_OF_UPPER_BORDER		  Number 00A0
-SENTENCE			  Near	 DGROUP:0146
-SETCYCLECOUNTER			  Near	 DGROUP:017E
+ROUNDBXTOEVENNUM		  Near	 DGROUP:019C
+SENTENCE			  Near	 DGROUP:0144
+SETCYCLECOUNTER			  Near	 DGROUP:0193
 START				  Near	 DGROUP:0100
+TEXT_COLOR			  Number 0070
 VIDEOSEG			  Number B800
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  0187 Word	  Public  CODE
+  _TEXT				  16  01A1 Word	  Public  CODE
 
