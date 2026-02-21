@@ -3,15 +3,14 @@
 org 100h
 
 VIDEOSEG 		equ 0b800h 
-CENTER_OF_FRAME		equ 007CAh
-PLACE_OF_UPPER_BORDER	equ 000A0h
-PLACE_OF_LOWER_BORDER	equ 0FF60h
+ADRESS_OF_FRAME		equ 007CAh
+REL_ADRESS_OF_BORDER	equ 000A0h
 
-PLACE_OF_FIRST_CMD	equ 00082h
-PLACE_OF_SECOND_CMD	equ 00085h
-PLACE_OF_INPUT		equ 00088h
+ADRESS_OF_FIRST_CMD	equ 00082h
+ADRESS_OF_SECOND_CMD	equ 00085h
+ADRESS_OF_INPUT		equ 00088h
 
-COUNT_TO_SKIP		equ 7
+COUNT_TO_SKIP		equ 7d
 
 TEXT_COLOR		equ 070h
 
@@ -26,94 +25,118 @@ start:
 	mov ax, VIDEOSEG
 	mov es, ax
 
-	call BuildFrame
+	mov ah, TEXT_COLOR
+
+	call PrintFrame
+
+	call PrintSentence
 
 	mov ax, 4c00h
 	int 21h
 ;___________________________________________________________________________;
 
 
-;__BUILDFRAME__
-;Printing framed input string with special color
-;Entry: -
+;__PRINTFRAME__
+;Printing frame with special color and with given size relative to sentence
+;Entry: AH - color of symbols
 ;Exit: -
-;Destr: AX, BX, CX, DX, DI
+;Destr: AL, BX, CX, DI
 ;___________________________________________________________________________;
-BuildFrame		proc
-	mov ah, TEXT_COLOR			;init color of text
+PrintFrame		proc
+	call PrintUpperBorder
 
-	call BuildTopCorners
+;	call PrintVerticalBorderAndBackground
 
-	mov dx, PLACE_OF_UPPER_BORDER
-	call BuildHorizontalBorder
-
-	call PrintSentence
-
-;	call BuildVerticalBorder
-
-	mov dx, PLACE_OF_LOWER_BORDER
-	call BuildHorizontalBorder
-
-	call BuildBottomCorners
+	call PrintLowerBorder
 
 	ret
 	endp
 ;___________________________________________________________________________;
 
 
-;__BUILDHORIZONTALBORDER__
+;__PRINTUPPERBORDER__
 ;Printing the top and bottom horizontal borders 
-;Entry: al = color of the text
+;Entry: AH = color of the text
 ;Exit: -
-;Destr: AH, BX, CX, DI
+;Destr: AL, BX, CX, DI
 ;___________________________________________________________________________;
-BuildHorizontalBorder	proc
+PrintUpperBorder	proc
 	call FindInputStrlen
 
 	mov bx, cx
 	call RoundBxToEvenNum
-	sub dx, CENTER_OF_FRAME
-	add bx, dx			;choose if it top border or bottom
+	add bx, REL_ADRESS_OF_BORDER
+	sub bx, ADRESS_OF_FRAME
 	neg bx
-	mov di, bx			;di = place to print
-
+	mov di, bx			;di = adress to print
+	
 	mov al, HORIZONTAL_BORDER
 
 	xor bx, bx
 
-building_border:
+building_upper_border:
 	shl bx, 1
 	mov es:[di+bx], ax
 	shr bx, 1
 
 	inc bx
 
-	loop building_border
+	loop building_upper_border
 
 	ret
 	endp
 ;___________________________________________________________________________;
 
 
-;__PRINTSENTENCE__
-;Printing the input string and vertical borders on each side.
-;Entry: al = color of text
+;__PRINTLOWERBORDER__
+;Printing lower border (include lower corners) in special color
+;Entry: AH - color of border
 ;Exit: -
-;Destr: AH, BX, CX, DI
+;Destr: AL, BX, CX, DI
+;___________________________________________________________________________;
+PrintLowerBorder 	proc
+	call FindInputStrlen
+
+	mov bx, cx
+	call RoundBxToEvenNum
+	neg bx
+	add bx, ADRESS_OF_FRAME
+	add bx, REL_ADRESS_OF_BORDER 
+	mov di, bx			;di = adress to print
+
+	mov al, HORIZONTAL_BORDER
+
+	xor bx, bx
+
+building_lower_border:
+	shl bx, 1
+	mov es:[di+bx], ax
+	shr bx, 1
+
+	inc bx
+
+	loop building_lower_border
+
+	ret
+	endp
+;___________________________________________________________________________;
+
+;__PRINTSENTENCE__
+;Printing the input string
+;Entry: AH = color of sentence
+;Exit: -
+;Destr: AL, BX, CX, DI
 ;___________________________________________________________________________;
 PrintSentence 		proc
 	call FindInputStrlen
 
 	mov bx, cx
 	call RoundBxToEvenNum
-	sub bx, CENTER_OF_FRAME
 	neg bx
+	add bx, ADRESS_OF_FRAME
 	mov di, bx
 
-	mov al, VERTICAL_BORDER 
-	mov es:[di-2], ax		;printing left border
-
-	mov al, ds:[PLACE_OF_INPUT]	;al = the 1st symbol of input
+	mov al, ds:[ADRESS_OF_INPUT]	;al = the 1st symbol of input
 
 	xor bx, bx
 	
@@ -123,13 +146,9 @@ building_sentence:
 	shr bx, 1
 
 	inc bx
-	mov al, ds:[PLACE_OF_INPUT+bx]
+	mov al, ds:[bx+ADRESS_OF_INPUT]
 
 	loop building_sentence
-
-	shl bx, 1
-	mov al, VERTICAL_BORDER
-	mov es:[di+bx], ax		;printing right border
 
 	ret
 	endp
@@ -138,17 +157,17 @@ building_sentence:
 
 ;__BUILDTOPCORNERS__
 ;Printing top right and left corners.
-;Entry: al = color of text
+;Entry: AH = color of text
 ;Exit: -
-;Destr: AH, BX, CX, DI
+;Destr: AL, BX, CX, DI
 ;___________________________________________________________________________;
 BuildTopCorners		proc
 	call FindInputStrlen	
 	
 	mov bx, cx
 	call RoundBxToEvenNum
-	mov di, CENTER_OF_FRAME
-	sub di, PLACE_OF_UPPER_BORDER	;di = same row as border, but in center
+;	mov di, CENTER_OF_FRAME
+;	sub di, PLACE_OF_UPPER_BORDER	;di = same row as border, but in center
 	sub di, bx
 
 	mov al, TOP_LEFT_CORNER
@@ -170,15 +189,15 @@ BuildTopCorners		proc
 ;Printing bottom left and right corners of frame.  
 ;Entry: AH = color of the text
 ;Exit: -
-;Destr: AH, BX, CX, DI
+;Destr: AL, BX, CX, DI
 ;___________________________________________________________________________;
 BuildBottomCorners	proc
 	call FindInputStrlen
 
 	mov bx, cx
 	call RoundBxToEvenNum
-	mov di, CENTER_OF_FRAME
-	sub di, PLACE_OF_LOWER_BORDER	;di = same row as border, but in center
+;	mov di, CENTER_OF_FRAME
+;	sub di, PLACE_OF_LOWER_BORDER	;di = same row as border, but in center
 	sub di, bx
 
 	mov al, BOTTOM_LEFT_CORNER
