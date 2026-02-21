@@ -3,14 +3,14 @@
 org 100h
 
 VIDEOSEG 		equ 0b800h 
-ADRESS_OF_FRAME		equ 007CAh
-REL_ADRESS_OF_BORDER	equ 000A0h
+ADRESS_OF_FRAME		equ 007D0h
+NEIGHBOR_BY_VERTICAL	equ 000A0h
 
-ADRESS_OF_FIRST_CMD	equ 00082h
-ADRESS_OF_SECOND_CMD	equ 00085h
-ADRESS_OF_INPUT		equ 00088h
+;ADRESS_OF_FIRST_CMD	equ 00082h
+;ADRESS_OF_SECOND_CMD	equ 00085h
+ADRESS_OF_INPUT		equ 00082h
 
-COUNT_TO_SKIP		equ 7d
+COUNT_TO_SKIP		equ 00001h	;have to skeep one space
 
 TEXT_COLOR		equ 070h
 
@@ -45,7 +45,7 @@ start:
 PrintFrame		proc
 	call PrintUpperBorder
 
-;	call PrintVerticalBorderAndBackground
+	call PrintVerticalBorderAndBackground
 
 	call PrintLowerBorder
 
@@ -65,7 +65,7 @@ PrintUpperBorder	proc
 
 	mov bx, cx
 	call RoundBxToEvenNum
-	add bx, REL_ADRESS_OF_BORDER
+	add bx, NEIGHBOR_BY_VERTICAL
 	sub bx, ADRESS_OF_FRAME
 	neg bx
 	mov di, bx			;di = adress to print
@@ -74,7 +74,6 @@ PrintUpperBorder	proc
 	mov es:[di-2], ax		;printing top left corner
 	
 	mov al, HORIZONTAL_BORDER
-
 	xor bx, bx
 
 building_upper_border:
@@ -108,14 +107,13 @@ PrintLowerBorder 	proc
 	call RoundBxToEvenNum
 	neg bx
 	add bx, ADRESS_OF_FRAME
-	add bx, REL_ADRESS_OF_BORDER 
+	add bx, NEIGHBOR_BY_VERTICAL 
 	mov di, bx			;di = adress to print
 
 	mov al, BOTTOM_LEFT_CORNER
 	mov es:[di-2], ax		;printing bottom left corner
 
 	mov al, HORIZONTAL_BORDER
-
 	xor bx, bx
 
 building_lower_border:
@@ -130,6 +128,38 @@ building_lower_border:
 	mov al, BOTTOM_RIGHT_CORNER
 	shl bx, 1
 	mov es:[di+bx], ax		;printing bottom right corner
+
+	ret
+	endp
+;___________________________________________________________________________;
+
+;___________________________________________________________________________;
+PrintVerticalBorderAndBackground	proc
+	call FindInputStrlen
+
+	mov bx, cx
+	call RoundBxToEvenNum
+	neg bx
+	add bx, ADRESS_OF_FRAME
+	mov di, bx 
+
+	mov al, VERTICAL_BORDER
+	mov es:[di-2], ax
+
+	xor al, al
+	xor bx, bx
+
+building_background:
+	shl bx, 1
+	mov es:[di+bx], ax
+	shr bx, 1
+	
+	inc bx
+	loop building_background
+
+	mov al, VERTICAL_BORDER
+	shl bx, 1
+	mov es:[di+bx], ax
 
 	ret
 	endp
@@ -151,7 +181,6 @@ PrintSentence 		proc
 	mov di, bx
 
 	mov al, ds:[ADRESS_OF_INPUT]	;al = the 1st symbol of input
-
 	xor bx, bx
 	
 building_sentence:
@@ -169,67 +198,7 @@ building_sentence:
 ;___________________________________________________________________________;
 
 
-;__BUILDTOPCORNERS__
-;Printing top right and left corners.
-;Entry: AH = color of text
-;Exit: -
-;Destr: AL, BX, CX, DI
-;___________________________________________________________________________;
-BuildTopCorners		proc
-	call FindInputStrlen	
-	
-	mov bx, cx
-	call RoundBxToEvenNum
-;	mov di, CENTER_OF_FRAME
-;	sub di, PLACE_OF_UPPER_BORDER	;di = same row as border, but in center
-	sub di, bx
-
-	mov al, TOP_LEFT_CORNER
-	sub di, 2			;di = the start of top border
-	mov es:[di], ax
-
-	shl cx, 1
-
-	mov al, TOP_RIGHT_CORNER
-	add di, cx			;di = the end of top border
-	mov es:[di+2], ax			
-
-	ret
-	endp
-;___________________________________________________________________________;
-
-
-;__BUILDBOTTOMCORNERS__
-;Printing bottom left and right corners of frame.  
-;Entry: AH = color of the text
-;Exit: -
-;Destr: AL, BX, CX, DI
-;___________________________________________________________________________;
-BuildBottomCorners	proc
-	call FindInputStrlen
-
-	mov bx, cx
-	call RoundBxToEvenNum
-;	mov di, CENTER_OF_FRAME
-;	sub di, PLACE_OF_LOWER_BORDER	;di = same row as border, but in center
-	sub di, bx
-
-	mov al, BOTTOM_LEFT_CORNER
-	sub di, 2
-	mov es:[di], ax			;printing bottom left corner
-
-	shl cx, 1
-	
-	mov al, BOTTOM_RIGHT_CORNER
-	add di, cx
-	mov es:[di+2], ax		;printing bottom right corner
-
-	ret
-	endp
-;___________________________________________________________________________;
-
-
-;__SETCYCLECOUNTER__
+;__FINDINPUTSTRLEN__
 ;Setting cx as counter of input symbols (the max value is 0EEh)
 ;Entry: -
 ;Exit: cx = count of input symbols
