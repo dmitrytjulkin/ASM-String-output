@@ -69,6 +69,9 @@ PrintUpperBorder	proc
 	sub bx, ADRESS_OF_FRAME
 	neg bx
 	mov di, bx			;di = adress to print
+
+	mov al, TOP_LEFT_CORNER
+	mov es:[di-2], ax		;printing top left corner
 	
 	mov al, HORIZONTAL_BORDER
 
@@ -82,6 +85,10 @@ building_upper_border:
 	inc bx
 
 	loop building_upper_border
+
+	mov al, TOP_RIGHT_CORNER
+	shl bx, 1
+	mov es:[di+bx], ax		;printing top right corner
 
 	ret
 	endp
@@ -104,6 +111,9 @@ PrintLowerBorder 	proc
 	add bx, REL_ADRESS_OF_BORDER 
 	mov di, bx			;di = adress to print
 
+	mov al, BOTTOM_LEFT_CORNER
+	mov es:[di-2], ax		;printing bottom left corner
+
 	mov al, HORIZONTAL_BORDER
 
 	xor bx, bx
@@ -116,6 +126,10 @@ building_lower_border:
 	inc bx
 
 	loop building_lower_border
+
+	mov al, BOTTOM_RIGHT_CORNER
+	shl bx, 1
+	mov es:[di+bx], ax		;printing bottom right corner
 
 	ret
 	endp
