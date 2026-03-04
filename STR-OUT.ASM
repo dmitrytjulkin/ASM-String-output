@@ -2,28 +2,32 @@
 .code
 org 100h
 
-VIDEOSEG 		equ 0b800h 
-ADRESS_OF_FRAME		equ 007D0h
+VIDEOSEG 				equ 0b800h
+ADDRESS_OF_FRAME		equ 007D0h
 NEIGHBOR_BY_VERTICAL	equ 000A0h
 
-;ADRESS_OF_FIRST_CMD	equ 00082h
-;ADRESS_OF_SECOND_CMD	equ 00085h
-ADRESS_OF_INPUT		equ 00082h
+;ADDRESS_OF_FIRST_CMD	equ 00082h
+;ADDRESS_OF_SECOND_CMD	equ 00085h
+ADDRESS_OF_INPUT		equ 00082h
 
-COUNT_TO_SKIP		equ 001h
+COUNT_TO_SKIP			equ 001h
 
-TEXT_COLOR		equ 070h
+TEXT_COLOR				equ 070h
 
-HORIZONTAL_BORDER 	equ 0CDh
-VERTICAL_BORDER		equ 0BAh
-TOP_LEFT_CORNER		equ 0C9h
-TOP_RIGHT_CORNER	equ 0BBh
-BOTTOM_LEFT_CORNER	equ 0C8h
-BOTTOM_RIGHT_CORNER	equ 0BCh
+HOR_BRDR 	equ 0CDh
+VER_BRDR	equ 0BAh
+TL_BRDR		equ 0C9h
+TR_BRDR		equ 0BBh
+BL_BRDR		equ 0C8h
+BR_BRDR		equ 0BCh
+SPACE		equ 020h
 
 start:
 .data
 	str_len db 0h
+	frame_symb db 	TL_BRDR, HOR_BRDR, TR_BRDR, \
+					VER_BRDR, SPACE, VER_BRDR, BL_BRDR, \
+					BL_BRDR, HOR_BRDR, BR_BRDR
 
 .code
 	mov ax, VIDEOSEG
@@ -32,7 +36,6 @@ start:
 	mov al, ds:[80h]
 	dec al
 	mov str_len, al
-;	mov cl, str_len
 
 	mov ah, TEXT_COLOR
 
@@ -63,7 +66,7 @@ PrintFrame		proc
 
 
 ;__PRINTUPPERBORDER__
-;Printing the top and bottom horizontal borders 
+;Printing the top and bottom horizontal borders
 ;Entry: AH = color of the text
 ;Exit: -
 ;Destr: AL, BX, CX, DI
@@ -75,26 +78,26 @@ PrintUpperBorder	proc
 	shr bx, 1
 	shl bx, 1
 	add bx, NEIGHBOR_BY_VERTICAL
-	sub bx, ADRESS_OF_FRAME
+	sub bx, ADDRESS_OF_FRAME
 	neg bx
-	mov di, bx			;di = adress to print
+	mov di, bx			;di = address to print
 
-	mov al, TOP_LEFT_CORNER
+	mov al, TL_BRDR
 	mov es:[di-2], ax		;printing top left corner
-	
-	mov al, HORIZONTAL_BORDER
+
+	mov al, HOR_BRDR
 	xor bx, bx
 
-building_upper_border:
+build_string:
 	shl bx, 1
 	mov es:[di+bx], ax
 	shr bx, 1
 
 	inc bx
 
-	loop building_upper_border
+	loop build_string
 
-	mov al, TOP_RIGHT_CORNER
+	mov al, TR_BRDR
 	shl bx, 1
 	mov es:[di+bx], ax		;printing top right corner
 
@@ -115,14 +118,14 @@ PrintLowerBorder 	proc
 	shr bx, 1
 	shl bx, 1
 	neg bx
-	add bx, ADRESS_OF_FRAME
-	add bx, NEIGHBOR_BY_VERTICAL 
-	mov di, bx			;di = adress to print
+	add bx, ADDRESS_OF_FRAME
+	add bx, NEIGHBOR_BY_VERTICAL
+	mov di, bx			;di = address to print
 
-	mov al, BOTTOM_LEFT_CORNER
+	mov al, BL_BRDR
 	mov es:[di-2], ax		;printing bottom left corner
 
-	mov al, HORIZONTAL_BORDER
+	mov al, HOR_BRDR
 	xor bx, bx
 
 building_lower_border:
@@ -134,7 +137,7 @@ building_lower_border:
 
 	loop building_lower_border
 
-	mov al, BOTTOM_RIGHT_CORNER
+	mov al, BR_BRDR
 	shl bx, 1
 	mov es:[di+bx], ax		;printing bottom right corner
 
@@ -155,10 +158,10 @@ PrintVerticalBorderAndBackground	proc
 	shr bx, 1
 	shl bx, 1
 	neg bx
-	add bx, ADRESS_OF_FRAME
-	mov di, bx 
+	add bx, ADDRESS_OF_FRAME
+	mov di, bx
 
-	mov al, VERTICAL_BORDER
+	mov al, VER_BRDR
 	mov es:[di-2], ax
 
 	xor al, al
@@ -168,11 +171,11 @@ building_background:
 	shl bx, 1
 	mov es:[di+bx], ax
 	shr bx, 1
-	
+
 	inc bx
 	loop building_background
 
-	mov al, VERTICAL_BORDER
+	mov al, VER_BRDR
 	shl bx, 1
 	mov es:[di+bx], ax
 
@@ -192,19 +195,19 @@ PrintSentence 		proc
 	shr bx, 1
 	shl bx, 1
 	neg bx
-	add bx, ADRESS_OF_FRAME
+	add bx, ADDRESS_OF_FRAME
 	mov di, bx
 
-	mov al, ds:[ADRESS_OF_INPUT]	;al = the 1st symbol of input
+	mov al, ds:[ADDRESS_OF_INPUT]	;al = the 1st symbol of input
 	xor bx, bx
-	
+
 building_sentence:
 	shl bx, 1
 	mov es:[di+bx], ax
 	shr bx, 1
 
 	inc bx
-	mov al, ds:[bx+ADRESS_OF_INPUT]
+	mov al, ds:[bx+ADDRESS_OF_INPUT]
 
 	loop building_sentence
 
