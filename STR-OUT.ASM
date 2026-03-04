@@ -10,7 +10,7 @@ NEIGHBOR_BY_VERTICAL	equ 000A0h
 ;ADRESS_OF_SECOND_CMD	equ 00085h
 ADRESS_OF_INPUT		equ 00082h
 
-COUNT_TO_SKIP		equ 00001h	;have to skeep one space
+COUNT_TO_SKIP		equ 001h
 
 TEXT_COLOR		equ 070h
 
@@ -22,8 +22,17 @@ BOTTOM_LEFT_CORNER	equ 0C8h
 BOTTOM_RIGHT_CORNER	equ 0BCh
 
 start:
+.data
+	str_len db 0h
+
+.code
 	mov ax, VIDEOSEG
 	mov es, ax
+
+	mov al, ds:[80h]
+	dec al
+	mov str_len, al
+;	mov cl, str_len
 
 	mov ah, TEXT_COLOR
 
@@ -39,7 +48,6 @@ start:
 ;__PRINTFRAME__
 ;Printing frame with special color and with given size relative to sentence
 ;Entry: AH - color of symbols
-;Exit: -
 ;Destr: AL, BX, CX, DI
 ;___________________________________________________________________________;
 PrintFrame		proc
@@ -61,10 +69,11 @@ PrintFrame		proc
 ;Destr: AL, BX, CX, DI
 ;___________________________________________________________________________;
 PrintUpperBorder	proc
-	call FindInputStrlen
+	mov cl, str_len
 
 	mov bx, cx
-	call RoundBxToEvenNum
+	shr bx, 1
+	shl bx, 1
 	add bx, NEIGHBOR_BY_VERTICAL
 	sub bx, ADRESS_OF_FRAME
 	neg bx
@@ -97,14 +106,14 @@ building_upper_border:
 ;__PRINTLOWERBORDER__
 ;Printing lower border (include lower corners) in special color
 ;Entry: AH - color of border
-;Exit: -
-;Destr: AL, BX, CX, DI
+;Destr: AX, BX, CX, DI
 ;___________________________________________________________________________;
 PrintLowerBorder 	proc
-	call FindInputStrlen
+	mov cl, str_len
 
 	mov bx, cx
-	call RoundBxToEvenNum
+	shr bx, 1
+	shl bx, 1
 	neg bx
 	add bx, ADRESS_OF_FRAME
 	add bx, NEIGHBOR_BY_VERTICAL 
@@ -133,12 +142,18 @@ building_lower_border:
 	endp
 ;___________________________________________________________________________;
 
+
+;__PRINTVERTICALBORDERANDBACKGROUND__
+;prints colored background and vertical borders (without corners)
+;Entry: -
+;Destr: AX, BX, CX, DI
 ;___________________________________________________________________________;
 PrintVerticalBorderAndBackground	proc
-	call FindInputStrlen
+	mov cl, str_len
 
 	mov bx, cx
-	call RoundBxToEvenNum
+	shr bx, 1
+	shl bx, 1
 	neg bx
 	add bx, ADRESS_OF_FRAME
 	mov di, bx 
@@ -168,14 +183,14 @@ building_background:
 ;__PRINTSENTENCE__
 ;Printing the input string
 ;Entry: AH = color of sentence
-;Exit: -
-;Destr: AL, BX, CX, DI
+;Destr: AX, BX, CX, DI
 ;___________________________________________________________________________;
 PrintSentence 		proc
-	call FindInputStrlen
+	mov cl, str_len
 
 	mov bx, cx
-	call RoundBxToEvenNum
+	shr bx, 1
+	shl bx, 1
 	neg bx
 	add bx, ADRESS_OF_FRAME
 	mov di, bx
@@ -196,37 +211,5 @@ building_sentence:
 	ret
 	endp
 ;___________________________________________________________________________;
-
-
-;__FINDINPUTSTRLEN__
-;Setting cx as counter of input symbols (the max value is 0EEh)
-;Entry: -
-;Exit: cx = count of input symbols
-;Destr: -
-;___________________________________________________________________________;
-FindInputStrlen	proc
-	mov cl, ds:[80h]
-	mov ch, 00
-	
-	sub cx, COUNT_TO_SKIP
-
-	ret
-	endp
-;__________________________________________________________________________;
-
-
-;__ROUNDBXTOEVENNUM__
-;Rounding value in bx to the nearest and the lowest even number
-;Entry: BX = value
-;Exit: BX = even value
-;Destr: -
-;__________________________________________________________________________;
-RoundBxToEvenNum		proc
-	shr bx, 1
-	shl bx, 1
-
-	ret
-	endp
-;__________________________________________________________________________;
 
 end		Start

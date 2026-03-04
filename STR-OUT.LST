@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/21/26 19:21:54	    Page 1
+Turbo Assembler	 Version 4.1	    03/04/26 21:20:03	    Page 1
 str-out.asm
 
 
@@ -15,7 +15,7 @@ str-out.asm
      10				     ;ADRESS_OF_SECOND_CMD   equ 00085h
      11	      =0082		     ADRESS_OF_INPUT	     equ 00082h
      12
-     13	      =0001		     COUNT_TO_SKIP	     equ 00001h	     ;have to skeep one	space
+     13	      =0001		     COUNT_TO_SKIP	     equ 001h
      14
      15	      =0070		     TEXT_COLOR		     equ 070h
      16
@@ -27,235 +27,213 @@ str-out.asm
      22	      =00BC		     BOTTOM_RIGHT_CORNER     equ 0BCh
      23
      24	0100			     start:
-     25	0100  B8 B800			     mov ax, VIDEOSEG
-     26	0103  8E C0			     mov es, ax
+     25	0100			     .data
+     26	0000  00			     str_len db	0h
      27
-     28	0105  B4 70			     mov ah, TEXT_COLOR
-     29
-     30	0107  E8 0008			     call PrintFrame
+     28	0001			     .code
+     29	0100  B8 B800			     mov ax, VIDEOSEG
+     30	0103  8E C0			     mov es, ax
      31
-     32	010A  E8 009B			     call PrintSentence
-     33
-     34	010D  B8 4C00			     mov ax, 4c00h
-     35	0110  CD 21			     int 21h
-     36				     ;___________________________________________________________________________;
-     37
+     32	0105  A0 0080			     mov al, ds:[80h]
+     33	0108  FE C8			     dec al
+     34	010A  A2 0000r			     mov str_len, al
+     35				     ;	     mov cl, str_len
+     36
+     37	010D  B4 70			     mov ah, TEXT_COLOR
      38
-     39				     ;__PRINTFRAME__
-     40				     ;Printing frame with special color	and with given size relative to	sentence
-     41				     ;Entry: AH	- color	of symbols
-     42				     ;Exit: -
-     43				     ;Destr: AL, BX, CX, DI
-     44				     ;___________________________________________________________________________;
-     45	0112			     PrintFrame		     proc
-     46	0112  E8 0007			     call PrintUpperBorder
+     39	010F  E8 0008			     call PrintFrame
+     40
+     41	0112  E8 00A1			     call PrintSentence
+     42
+     43	0115  B8 4C00			     mov ax, 4c00h
+     44	0118  CD 21			     int 21h
+     45				     ;___________________________________________________________________________;
+     46
      47
-     48	0115  E8 0064			     call PrintVerticalBorderAndBackground
-     49
-     50	0118  E8 0031			     call PrintLowerBorder
-     51
-     52	011B  C3			     ret
-     53	011C				     endp
-     54				     ;___________________________________________________________________________;
+     48				     ;__PRINTFRAME__
+     49				     ;Printing frame with special color	and with given size relative to	sentence
+     50				     ;Entry: AH	- color	of symbols
+     51				     ;Destr: AL, BX, CX, DI
+     52				     ;___________________________________________________________________________;
+     53	011A			     PrintFrame		     proc
+     54	011A  E8 0007			     call PrintUpperBorder
      55
-     56
-     57				     ;__PRINTUPPERBORDER__
-Turbo Assembler	 Version 4.1	    02/21/26 19:21:54	    Page 2
+     56	011D  E8 0068			     call PrintVerticalBorderAndBackground
+     57
+Turbo Assembler	 Version 4.1	    03/04/26 21:20:03	    Page 2
 str-out.asm
 
 
 
-     58				     ;Printing the top and bottom horizontal borders
-     59				     ;Entry: AH	= color	of the text
-     60				     ;Exit: -
-     61				     ;Destr: AL, BX, CX, DI
+     58	0120  E8 0033			     call PrintLowerBorder
+     59
+     60	0123  C3			     ret
+     61	0124				     endp
      62				     ;___________________________________________________________________________;
-     63	011C			     PrintUpperBorder	     proc
-     64	011C  E8 00AD			     call FindInputStrlen
-     65
-     66	011F  8B D9			     mov bx, cx
-     67	0121  E8 00B2			     call RoundBxToEvenNum
-     68	0124  81 C3 00A0		     add bx, NEIGHBOR_BY_VERTICAL
-     69	0128  81 EB 07D0		     sub bx, ADRESS_OF_FRAME
-     70	012C  F7 DB			     neg bx
-     71	012E  8B FB			     mov di, bx			     ;di = adress to print
-     72
-     73	0130  B0 C9			     mov al, TOP_LEFT_CORNER
-     74	0132  26: 89 45	FE		     mov es:[di-2], ax		     ;printing top left	corner
-     75
-     76	0136  B0 CD			     mov al, HORIZONTAL_BORDER
-     77	0138  33 DB			     xor bx, bx
-     78
-     79	013A			     building_upper_border:
-     80	013A  D1 E3			     shl bx, 1
-     81	013C  26: 89 01			     mov es:[di+bx], ax
-     82	013F  D1 EB			     shr bx, 1
-     83
-     84	0141  43			     inc bx
-     85
-     86	0142  E2 F6			     loop building_upper_border
+     63
+     64
+     65				     ;__PRINTUPPERBORDER__
+     66				     ;Printing the top and bottom horizontal borders
+     67				     ;Entry: AH	= color	of the text
+     68				     ;Exit: -
+     69				     ;Destr: AL, BX, CX, DI
+     70				     ;___________________________________________________________________________;
+     71	0124			     PrintUpperBorder	     proc
+     72	0124  8A 0E 0000r		     mov cl, str_len
+     73
+     74	0128  8B D9			     mov bx, cx
+     75	012A  D1 EB			     shr bx, 1
+     76	012C  D1 E3			     shl bx, 1
+     77	012E  81 C3 00A0		     add bx, NEIGHBOR_BY_VERTICAL
+     78	0132  81 EB 07D0		     sub bx, ADRESS_OF_FRAME
+     79	0136  F7 DB			     neg bx
+     80	0138  8B FB			     mov di, bx			     ;di = adress to print
+     81
+     82	013A  B0 C9			     mov al, TOP_LEFT_CORNER
+     83	013C  26: 89 45	FE		     mov es:[di-2], ax		     ;printing top left	corner
+     84
+     85	0140  B0 CD			     mov al, HORIZONTAL_BORDER
+     86	0142  33 DB			     xor bx, bx
      87
-     88	0144  B0 BB			     mov al, TOP_RIGHT_CORNER
-     89	0146  D1 E3			     shl bx, 1
-     90	0148  26: 89 01			     mov es:[di+bx], ax		     ;printing top right corner
-     91
-     92	014B  C3			     ret
-     93	014C				     endp
-     94				     ;___________________________________________________________________________;
-     95
+     88	0144			     building_upper_border:
+     89	0144  D1 E3			     shl bx, 1
+     90	0146  26: 89 01			     mov es:[di+bx], ax
+     91	0149  D1 EB			     shr bx, 1
+     92
+     93	014B  43			     inc bx
+     94
+     95	014C  E2 F6			     loop building_upper_border
      96
-     97				     ;__PRINTLOWERBORDER__
-     98				     ;Printing lower border (include lower corners) in special color
-     99				     ;Entry: AH	- color	of border
-    100				     ;Exit: -
-    101				     ;Destr: AL, BX, CX, DI
-    102				     ;___________________________________________________________________________;
-    103	014C			     PrintLowerBorder	     proc
-    104	014C  E8 007D			     call FindInputStrlen
+     97	014E  B0 BB			     mov al, TOP_RIGHT_CORNER
+     98	0150  D1 E3			     shl bx, 1
+     99	0152  26: 89 01			     mov es:[di+bx], ax		     ;printing top right corner
+    100
+    101	0155  C3			     ret
+    102	0156				     endp
+    103				     ;___________________________________________________________________________;
+    104
     105
-    106	014F  8B D9			     mov bx, cx
-    107	0151  E8 0082			     call RoundBxToEvenNum
-    108	0154  F7 DB			     neg bx
-    109	0156  81 C3 07D0		     add bx, ADRESS_OF_FRAME
-    110	015A  81 C3 00A0		     add bx, NEIGHBOR_BY_VERTICAL
-    111	015E  8B FB			     mov di, bx			     ;di = adress to print
-    112
-    113	0160  B0 C8			     mov al, BOTTOM_LEFT_CORNER
-    114	0162  26: 89 45	FE		     mov es:[di-2], ax		     ;printing bottom left corner
-Turbo Assembler	 Version 4.1	    02/21/26 19:21:54	    Page 3
+    106				     ;__PRINTLOWERBORDER__
+    107				     ;Printing lower border (include lower corners) in special color
+    108				     ;Entry: AH	- color	of border
+    109				     ;Destr: AX, BX, CX, DI
+    110				     ;___________________________________________________________________________;
+    111	0156			     PrintLowerBorder	     proc
+    112	0156  8A 0E 0000r		     mov cl, str_len
+    113
+    114	015A  8B D9			     mov bx, cx
+Turbo Assembler	 Version 4.1	    03/04/26 21:20:03	    Page 3
 str-out.asm
 
 
 
-    115
-    116	0166  B0 CD			     mov al, HORIZONTAL_BORDER
-    117	0168  33 DB			     xor bx, bx
-    118
-    119	016A			     building_lower_border:
-    120	016A  D1 E3			     shl bx, 1
-    121	016C  26: 89 01			     mov es:[di+bx], ax
-    122	016F  D1 EB			     shr bx, 1
-    123
-    124	0171  43			     inc bx
-    125
-    126	0172  E2 F6			     loop building_lower_border
+    115	015C  D1 EB			     shr bx, 1
+    116	015E  D1 E3			     shl bx, 1
+    117	0160  F7 DB			     neg bx
+    118	0162  81 C3 07D0		     add bx, ADRESS_OF_FRAME
+    119	0166  81 C3 00A0		     add bx, NEIGHBOR_BY_VERTICAL
+    120	016A  8B FB			     mov di, bx			     ;di = adress to print
+    121
+    122	016C  B0 C8			     mov al, BOTTOM_LEFT_CORNER
+    123	016E  26: 89 45	FE		     mov es:[di-2], ax		     ;printing bottom left corner
+    124
+    125	0172  B0 CD			     mov al, HORIZONTAL_BORDER
+    126	0174  33 DB			     xor bx, bx
     127
-    128	0174  B0 BC			     mov al, BOTTOM_RIGHT_CORNER
+    128	0176			     building_lower_border:
     129	0176  D1 E3			     shl bx, 1
-    130	0178  26: 89 01			     mov es:[di+bx], ax		     ;printing bottom right corner
-    131
-    132	017B  C3			     ret
-    133	017C				     endp
-    134				     ;___________________________________________________________________________;
-    135
-    136				     ;___________________________________________________________________________;
-    137	017C			     PrintVerticalBorderAndBackground	     proc
-    138	017C  E8 004D			     call FindInputStrlen
-    139
-    140	017F  8B D9			     mov bx, cx
-    141	0181  E8 0052			     call RoundBxToEvenNum
-    142	0184  F7 DB			     neg bx
-    143	0186  81 C3 07D0		     add bx, ADRESS_OF_FRAME
-    144	018A  8B FB			     mov di, bx
+    130	0178  26: 89 01			     mov es:[di+bx], ax
+    131	017B  D1 EB			     shr bx, 1
+    132
+    133	017D  43			     inc bx
+    134
+    135	017E  E2 F6			     loop building_lower_border
+    136
+    137	0180  B0 BC			     mov al, BOTTOM_RIGHT_CORNER
+    138	0182  D1 E3			     shl bx, 1
+    139	0184  26: 89 01			     mov es:[di+bx], ax		     ;printing bottom right corner
+    140
+    141	0187  C3			     ret
+    142	0188				     endp
+    143				     ;___________________________________________________________________________;
+    144
     145
-    146	018C  B0 BA			     mov al, VERTICAL_BORDER
-    147	018E  26: 89 45	FE		     mov es:[di-2], ax
-    148
-    149	0192  32 C0			     xor al, al
-    150	0194  33 DB			     xor bx, bx
-    151
-    152	0196			     building_background:
-    153	0196  D1 E3			     shl bx, 1
-    154	0198  26: 89 01			     mov es:[di+bx], ax
-    155	019B  D1 EB			     shr bx, 1
-    156
-    157	019D  43			     inc bx
-    158	019E  E2 F6			     loop building_background
-    159
-    160	01A0  B0 BA			     mov al, VERTICAL_BORDER
-    161	01A2  D1 E3			     shl bx, 1
-    162	01A4  26: 89 01			     mov es:[di+bx], ax
+    146				     ;__PRINTVERTICALBORDERANDBACKGROUND__
+    147				     ;prints colored background	and vertical borders (without corners)
+    148				     ;Entry: -
+    149				     ;Destr: AX, BX, CX, DI
+    150				     ;___________________________________________________________________________;
+    151	0188			     PrintVerticalBorderAndBackground	     proc
+    152	0188  8A 0E 0000r		     mov cl, str_len
+    153
+    154	018C  8B D9			     mov bx, cx
+    155	018E  D1 EB			     shr bx, 1
+    156	0190  D1 E3			     shl bx, 1
+    157	0192  F7 DB			     neg bx
+    158	0194  81 C3 07D0		     add bx, ADRESS_OF_FRAME
+    159	0198  8B FB			     mov di, bx
+    160
+    161	019A  B0 BA			     mov al, VERTICAL_BORDER
+    162	019C  26: 89 45	FE		     mov es:[di-2], ax
     163
-    164	01A7  C3			     ret
-    165	01A8				     endp
-    166				     ;___________________________________________________________________________;
-    167
-    168				     ;__PRINTSENTENCE__
-    169				     ;Printing the input string
-    170				     ;Entry: AH	= color	of sentence
-    171				     ;Exit: -
-Turbo Assembler	 Version 4.1	    02/21/26 19:21:54	    Page 4
+    164	01A0  32 C0			     xor al, al
+    165	01A2  33 DB			     xor bx, bx
+    166
+    167	01A4			     building_background:
+    168	01A4  D1 E3			     shl bx, 1
+    169	01A6  26: 89 01			     mov es:[di+bx], ax
+    170	01A9  D1 EB			     shr bx, 1
+    171
+Turbo Assembler	 Version 4.1	    03/04/26 21:20:03	    Page 4
 str-out.asm
 
 
 
-    172				     ;Destr: AL, BX, CX, DI
-    173				     ;___________________________________________________________________________;
-    174	01A8			     PrintSentence	     proc
-    175	01A8  E8 0021			     call FindInputStrlen
-    176
-    177	01AB  8B D9			     mov bx, cx
-    178	01AD  E8 0026			     call RoundBxToEvenNum
-    179	01B0  F7 DB			     neg bx
-    180	01B2  81 C3 07D0		     add bx, ADRESS_OF_FRAME
-    181	01B6  8B FB			     mov di, bx
+    172	01AB  43			     inc bx
+    173	01AC  E2 F6			     loop building_background
+    174
+    175	01AE  B0 BA			     mov al, VERTICAL_BORDER
+    176	01B0  D1 E3			     shl bx, 1
+    177	01B2  26: 89 01			     mov es:[di+bx], ax
+    178
+    179	01B5  C3			     ret
+    180	01B6				     endp
+    181				     ;___________________________________________________________________________;
     182
-    183	01B8  A0 0082			     mov al, ds:[ADRESS_OF_INPUT]    ;al = the 1st symbol of input
-    184	01BB  33 DB			     xor bx, bx
-    185
-    186	01BD			     building_sentence:
-    187	01BD  D1 E3			     shl bx, 1
-    188	01BF  26: 89 01			     mov es:[di+bx], ax
-    189	01C2  D1 EB			     shr bx, 1
+    183				     ;__PRINTSENTENCE__
+    184				     ;Printing the input string
+    185				     ;Entry: AH	= color	of sentence
+    186				     ;Destr: AX, BX, CX, DI
+    187				     ;___________________________________________________________________________;
+    188	01B6			     PrintSentence	     proc
+    189	01B6  8A 0E 0000r		     mov cl, str_len
     190
-    191	01C4  43			     inc bx
-    192	01C5  8A 87 0082		     mov al, ds:[bx+ADRESS_OF_INPUT]
-    193
-    194	01C9  E2 F2			     loop building_sentence
-    195
-    196	01CB  C3			     ret
-    197	01CC				     endp
-    198				     ;___________________________________________________________________________;
-    199
+    191	01BA  8B D9			     mov bx, cx
+    192	01BC  D1 EB			     shr bx, 1
+    193	01BE  D1 E3			     shl bx, 1
+    194	01C0  F7 DB			     neg bx
+    195	01C2  81 C3 07D0		     add bx, ADRESS_OF_FRAME
+    196	01C6  8B FB			     mov di, bx
+    197
+    198	01C8  A0 0082			     mov al, ds:[ADRESS_OF_INPUT]    ;al = the 1st symbol of input
+    199	01CB  33 DB			     xor bx, bx
     200
-    201				     ;__FINDINPUTSTRLEN__
-    202				     ;Setting cx as counter of input symbols (the max value is 0EEh)
-    203				     ;Entry: -
-    204				     ;Exit: cx = count of input	symbols
-    205				     ;Destr: -
-    206				     ;___________________________________________________________________________;
-    207	01CC			     FindInputStrlen proc
-    208	01CC  8A 0E 0080		     mov cl, ds:[80h]
-    209	01D0  B5 00			     mov ch, 00
+    201	01CD			     building_sentence:
+    202	01CD  D1 E3			     shl bx, 1
+    203	01CF  26: 89 01			     mov es:[di+bx], ax
+    204	01D2  D1 EB			     shr bx, 1
+    205
+    206	01D4  43			     inc bx
+    207	01D5  8A 87 0082		     mov al, ds:[bx+ADRESS_OF_INPUT]
+    208
+    209	01D9  E2 F2			     loop building_sentence
     210
-    211	01D2  83 E9 01			     sub cx, COUNT_TO_SKIP
-    212
-    213	01D5  C3			     ret
-    214	01D6				     endp
-    215				     ;__________________________________________________________________________;
-    216
-    217
-    218				     ;__ROUNDBXTOEVENNUM__
-    219				     ;Rounding value in	bx to the nearest and the lowest even number
-    220				     ;Entry: BX	= value
-    221				     ;Exit: BX = even value
-    222				     ;Destr: -
-    223				     ;__________________________________________________________________________;
-    224	01D6			     RoundBxToEvenNum		     proc
-    225	01D6  D1 EB			     shr bx, 1
-    226	01D8  D1 E3			     shl bx, 1
-    227
-    228	01DA  C3			     ret
-Turbo Assembler	 Version 4.1	    02/21/26 19:21:54	    Page 5
-str-out.asm
-
-
-
-    229	01DB				     endp
-    230				     ;__________________________________________________________________________;
-    231
-    232				     end	     Start
-Turbo Assembler	 Version 4.1	    02/21/26 19:21:54	    Page 6
+    211	01DB  C3			     ret
+    212	01DC				     endp
+    213				     ;___________________________________________________________________________;
+    214
+    215				     end	     Start
+Turbo Assembler	 Version 4.1	    03/04/26 21:20:03	    Page 5
 Symbol Table
 
 
@@ -263,9 +241,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "02/21/26"
+??DATE				  Text	 "03/04/26"
 ??FILENAME			  Text	 "str-out "
-??TIME				  Text	 "19:21:54"
+??TIME				  Text	 "21:20:03"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -283,21 +261,20 @@ ADRESS_OF_FRAME			  Number 07D0
 ADRESS_OF_INPUT			  Number 0082
 BOTTOM_LEFT_CORNER		  Number 00C8
 BOTTOM_RIGHT_CORNER		  Number 00BC
-BUILDING_BACKGROUND		  Near	 DGROUP:0196
-BUILDING_LOWER_BORDER		  Near	 DGROUP:016A
-BUILDING_SENTENCE		  Near	 DGROUP:01BD
-BUILDING_UPPER_BORDER		  Near	 DGROUP:013A
+BUILDING_BACKGROUND		  Near	 DGROUP:01A4
+BUILDING_LOWER_BORDER		  Near	 DGROUP:0176
+BUILDING_SENTENCE		  Near	 DGROUP:01CD
+BUILDING_UPPER_BORDER		  Near	 DGROUP:0144
 COUNT_TO_SKIP			  Number 0001
-FINDINPUTSTRLEN			  Near	 DGROUP:01CC
 HORIZONTAL_BORDER		  Number 00CD
 NEIGHBOR_BY_VERTICAL		  Number 00A0
-PRINTFRAME			  Near	 DGROUP:0112
-PRINTLOWERBORDER		  Near	 DGROUP:014C
-PRINTSENTENCE			  Near	 DGROUP:01A8
-PRINTUPPERBORDER		  Near	 DGROUP:011C
-PRINTVERTICALBORDERANDBACKGROUND  Near	 DGROUP:017C
-ROUNDBXTOEVENNUM		  Near	 DGROUP:01D6
+PRINTFRAME			  Near	 DGROUP:011A
+PRINTLOWERBORDER		  Near	 DGROUP:0156
+PRINTSENTENCE			  Near	 DGROUP:01B6
+PRINTUPPERBORDER		  Near	 DGROUP:0124
+PRINTVERTICALBORDERANDBACKGROUND  Near	 DGROUP:0188
 START				  Near	 DGROUP:0100
+STR_LEN				  Byte	 DGROUP:0000
 TEXT_COLOR			  Number 0070
 TOP_LEFT_CORNER			  Number 00C9
 TOP_RIGHT_CORNER		  Number 00BB
@@ -307,6 +284,6 @@ VIDEOSEG			  Number B800
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
-  _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  01DB Word	  Public  CODE
+  _DATA				  16  0001 Word	  Public  DATA
+  _TEXT				  16  01DC Word	  Public  CODE
 
