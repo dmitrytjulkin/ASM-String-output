@@ -9,6 +9,7 @@ NEIGHBOR_BY_VERTICAL	equ 000A0h
 ;ADDRESS_OF_FIRST_CMD	equ 00082h
 ;ADDRESS_OF_SECOND_CMD	equ 00085h
 ADDRESS_OF_INPUT		equ 00082h
+ADDRESS_OF_INP_CNT		equ 00080h
 
 COUNT_TO_SKIP			equ 001h
 
@@ -33,7 +34,7 @@ start:
 	mov ax, VIDEOSEG
 	mov es, ax
 
-	mov al, ds:[80h]
+	mov al, ds:[ADDRESS_OF_INP_CNT]
 	dec al
 	mov str_len, al
 
@@ -54,46 +55,40 @@ start:
 ;Destr: AL, BX, CX, DX, DI
 ;___________________________________________________________________________;
 PrintFrame		proc
-	xor bx, bx
-	mov bl, str_len
-	shr bx, 1
-	shl bx, 1
-	add bx, NEIGHBOR_BY_VERTICAL
-	sub bx, ADDRESS_OF_FRAME
-	neg bx
-	mov di, bx				;di = address to print
+	xor dx, dx
+	mov dl, str_len
+	shr dl, 1
+	shl dl, 1				;turn dx to closest and smaller even number
+
+	mov bx, ADDRESS_OF_FRAME
+	sub bx, NEIGHBOR_BY_VERTICAL
+	sub bx, dx
+	mov di, bx				;di = address to print (for stosw)
 
 	mov cx, 3
 
 build_frame:
-	mov bx, cx
-	sub bx, 3
-	neg bx
-	push cx					;save cx value for double cycle
-	mov cl, str_len
+	mov bx, 3
+	sub bx, cx				;bx is using for addressing to frame_symb
 
 	call MultiplyBxBy3
 	mov al, frame_symb[bx]
-	mov es:[di-2], ax		;printing top left corner
+	mov es:[di-2], ax		;printing the edge of string
 
 	mov al, frame_symb[bx + 1]
-	xor dx, dx
-
-	REP STOSW
+	push cx					;save cx value for double cycle
+	mov cl, str_len
+	REP STOSW				;printing the center of string
+	pop cx
 
 	mov al, frame_symb[bx + 2]
-	shl dx, 1
-	mov es:[di], ax		;printing top right corner
+	mov es:[di], ax			;printing the edge of string
 
 	add di, NEIGHBOR_BY_VERTICAL
-	push ax
-	xor ax, ax
-	mov al, str_len
-	shl ax, 1
-	sub di, ax
-	pop ax
+	mov dl, str_len
+	sub di, dx
+	sub di, dx				;addressing to the start of next string
 
-	pop cx
 	loop build_frame
 
 	ret
