@@ -15,6 +15,10 @@ COUNT_TO_SKIP			equ 001h
 
 TEXT_COLOR				equ 070h
 
+REL_BRDR_LENGTH			equ 001h
+REL_BRDR_WIDTH			equ 001h
+MAX_BRDR_WIDTH			equ 005h
+
 HOR_BRDR 	equ 0CDh
 VER_BRDR	equ 0BAh
 TL_BRDR		equ 0C9h
@@ -40,7 +44,7 @@ start:
 
 	mov ah, TEXT_COLOR
 
-	call PrintFrame
+;	call PrintFrame
 
 	call PrintSentence
 
@@ -99,28 +103,38 @@ build_frame:
 ;__PRINTSENTENCE__
 ;Printing the input string
 ;Entry: AH = color of sentence
-;Destr: AX, BX, CX, DI
+;Destr: AX, BX, CX, DI, SI
 ;___________________________________________________________________________;
 PrintSentence 		proc
+	xor cx, cx
+	mov cl, MAX_BRDR_WIDTH
+	shr cx, 1
+	shl cx, 1
+
+	mov bx, ADDRESS_OF_FRAME
+	sub bx, cx
+	mov di, bx						;address where to print the sentence
+
+	mov si, ADDRESS_OF_INPUT
 	mov cl, str_len
-
-	mov bx, cx
-	shr bx, 1
-	shl bx, 1
-	neg bx
-	add bx, ADDRESS_OF_FRAME
-	mov di, bx
-
-	mov al, ds:[ADDRESS_OF_INPUT]	;al = the 1st symbol of input
-	xor bx, bx
+	mov bp, cx
 
 building_sentence:
-	shl bx, 1
-	mov es:[di+bx], ax
-	shr bx, 1
+	mov bx, bp
+	sub bx, cx
+	cmp bx, MAX_BRDR_WIDTH			;if (bp - cx >= MAX_...) => transfer
 
-	inc bx
-	mov al, ds:[bx+ADDRESS_OF_INPUT]
+	jl no_transfer_sentence
+	add di, NEIGHBOR_BY_VERTICAL
+	sub di, MAX_BRDR_WIDTH
+	sub di, MAX_BRDR_WIDTH			;set address of a new string
+	sub bp, MAX_BRDR_WIDTH			;for further conditions
+
+no_transfer_sentence:
+
+	mov al, ds:[si]
+	STOSW							;print symbol
+	inc si
 
 	loop building_sentence
 

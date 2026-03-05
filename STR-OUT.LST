@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 1
+Turbo Assembler	 Version 4.1	    03/05/26 21:34:49	    Page 1
 str-out.asm
 
 
@@ -20,144 +20,159 @@ str-out.asm
      15
      16	      =0070		     TEXT_COLOR				     equ 070h
      17
-     18	      =00CD		     HOR_BRDR	     equ 0CDh
-     19	      =00BA		     VER_BRDR	     equ 0BAh
-     20	      =00C9		     TL_BRDR	     equ 0C9h
-     21	      =00BB		     TR_BRDR	     equ 0BBh
-     22	      =00C8		     BL_BRDR	     equ 0C8h
-     23	      =00BC		     BR_BRDR	     equ 0BCh
-     24	      =0020		     SPACE	     equ 020h
-     25
-     26	0100			     start:
-     27	0100			     .data
-     28	0000  00			     str_len db	0h
-     29	0001  C9 CD BB BA 20 BA	C8+	     frame_symb	db   TL_BRDR, HOR_BRDR,	TR_BRDR, \
-     30	      CD BC							     VER_BRDR, SPACE, VER_BRDR,	 \
-     31									     BL_BRDR, HOR_BRDR,	BR_BRDR
-     32
-     33	000A			     .code
-     34	0100  B8 B800			     mov ax, VIDEOSEG
-     35	0103  8E C0			     mov es, ax
+     18	      =0001		     REL_BRDR_LENGTH		     equ 001h
+     19	      =0001		     REL_BRDR_WIDTH		     equ 001h
+     20	      =0005		     MAX_BRDR_WIDTH		     equ 005h
+     21
+     22	      =00CD		     HOR_BRDR	     equ 0CDh
+     23	      =00BA		     VER_BRDR	     equ 0BAh
+     24	      =00C9		     TL_BRDR	     equ 0C9h
+     25	      =00BB		     TR_BRDR	     equ 0BBh
+     26	      =00C8		     BL_BRDR	     equ 0C8h
+     27	      =00BC		     BR_BRDR	     equ 0BCh
+     28	      =0020		     SPACE	     equ 020h
+     29
+     30	0100			     start:
+     31	0100			     .data
+     32	0000  00			     str_len db	0h
+     33	0001  C9 CD BB BA 20 BA	C8+	     frame_symb	db   TL_BRDR, HOR_BRDR,	TR_BRDR, \
+     34	      CD BC							     VER_BRDR, SPACE, VER_BRDR,	 \
+     35									     BL_BRDR, HOR_BRDR,	BR_BRDR
      36
-     37	0105  A0 0080			     mov al, ds:[ADDRESS_OF_INP_CNT]
-     38	0108  FE C8			     dec al
-     39	010A  A2 0000r			     mov str_len, al
+     37	000A			     .code
+     38	0100  B8 B800			     mov ax, VIDEOSEG
+     39	0103  8E C0			     mov es, ax
      40
-     41	010D  B4 70			     mov ah, TEXT_COLOR
-     42
-     43	010F  E8 0008			     call PrintFrame
+     41	0105  A0 0080			     mov al, ds:[ADDRESS_OF_INP_CNT]
+     42	0108  FE C8			     dec al
+     43	010A  A2 0000r			     mov str_len, al
      44
-     45	0112  E8 004F			     call PrintSentence
+     45	010D  B4 70			     mov ah, TEXT_COLOR
      46
-     47	0115  B8 4C00			     mov ax, 4c00h
-     48	0118  CD 21			     int 21h
-     49				     ;___________________________________________________________________________;
+     47				     ;	     call PrintFrame
+     48
+     49	010F  E8 004F			     call PrintSentence
      50
-     51
-     52				     ;__PRINTFRAME__
-     53				     ;Printing frame with special color	and with given size relative to	sentence
-     54				     ;Entry: AH	- color	of symbols
-     55				     ;Destr: AL, BX, CX, DX, DI
-     56				     ;___________________________________________________________________________;
-     57	011A			     PrintFrame		     proc
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 2
+     51	0112  B8 4C00			     mov ax, 4c00h
+     52	0115  CD 21			     int 21h
+     53				     ;___________________________________________________________________________;
+     54
+     55
+     56				     ;__PRINTFRAME__
+     57				     ;Printing frame with special color	and with given size relative to	sentence
+Turbo Assembler	 Version 4.1	    03/05/26 21:34:49	    Page 2
 str-out.asm
 
 
 
-     58	011A  33 D2			     xor dx, dx
-     59	011C  8A 16 0000r		     mov dl, str_len
-     60	0120  D0 EA			     shr dl, 1
-     61	0122  D0 E2			     shl dl, 1				     ;turn dx to closest and smaller even number
-     62
-     63	0124  BB 07D0			     mov bx, ADDRESS_OF_FRAME
-     64	0127  81 EB 00A0		     sub bx, NEIGHBOR_BY_VERTICAL
-     65	012B  2B DA			     sub bx, dx
-     66	012D  8B FB			     mov di, bx				     ;di = address to print (for stosw)
-     67
-     68	012F  B9 0003			     mov cx, 3
-     69
-     70	0132			     build_frame:
-     71	0132  BB 0003			     mov bx, 3
-     72	0135  2B D9			     sub bx, cx				     ;bx is using for addressing to frame_symb
+     58				     ;Entry: AH	- color	of symbols
+     59				     ;Destr: AL, BX, CX, DX, DI
+     60				     ;___________________________________________________________________________;
+     61	0117			     PrintFrame		     proc
+     62	0117  33 D2			     xor dx, dx
+     63	0119  8A 16 0000r		     mov dl, str_len
+     64	011D  D0 EA			     shr dl, 1
+     65	011F  D0 E2			     shl dl, 1				     ;turn dx to closest and smaller even number
+     66
+     67	0121  BB 07D0			     mov bx, ADDRESS_OF_FRAME
+     68	0124  81 EB 00A0		     sub bx, NEIGHBOR_BY_VERTICAL
+     69	0128  2B DA			     sub bx, dx
+     70	012A  8B FB			     mov di, bx				     ;di = address to print (for stosw)
+     71
+     72	012C  B9 0003			     mov cx, 3
      73
-     74	0137  E8 0050			     call MultiplyBxBy3
-     75	013A  8A 87 0001r		     mov al, frame_symb[bx]
-     76	013E  26: 89 45	FE		     mov es:[di-2], ax		     ;printing the edge	of string
+     74	012F			     build_frame:
+     75	012F  BB 0003			     mov bx, 3
+     76	0132  2B D9			     sub bx, cx				     ;bx is using for addressing to frame_symb
      77
-     78	0142  8A 87 0002r		     mov al, frame_symb[bx + 1]
-     79	0146  51			     push cx				     ;save cx value for	double cycle
-     80	0147  8A 0E 0000r		     mov cl, str_len
-     81	014B  F3> AB			     REP STOSW				     ;printing the center of string
-     82	014D  59			     pop cx
-     83
-     84	014E  8A 87 0003r		     mov al, frame_symb[bx + 2]
-     85	0152  26: 89 05			     mov es:[di], ax		     ;printing the edge	of string
-     86
-     87	0155  81 C7 00A0		     add di, NEIGHBOR_BY_VERTICAL
-     88	0159  8A 16 0000r		     mov dl, str_len
-     89	015D  2B FA			     sub di, dx
-     90	015F  2B FA			     sub di, dx				     ;addressing to the	start of next string
-     91
-     92	0161  E2 CF			     loop build_frame
-     93
-     94	0163  C3			     ret
-     95	0164				     endp
-     96				     ;___________________________________________________________________________;
+     78	0134  E8 005F			     call MultiplyBxBy3
+     79	0137  8A 87 0001r		     mov al, frame_symb[bx]
+     80	013B  26: 89 45	FE		     mov es:[di-2], ax		     ;printing the edge	of string
+     81
+     82	013F  8A 87 0002r		     mov al, frame_symb[bx + 1]
+     83	0143  51			     push cx				     ;save cx value for	double cycle
+     84	0144  8A 0E 0000r		     mov cl, str_len
+     85	0148  F3> AB			     REP STOSW				     ;printing the center of string
+     86	014A  59			     pop cx
+     87
+     88	014B  8A 87 0003r		     mov al, frame_symb[bx + 2]
+     89	014F  26: 89 05			     mov es:[di], ax		     ;printing the edge	of string
+     90
+     91	0152  81 C7 00A0		     add di, NEIGHBOR_BY_VERTICAL
+     92	0156  8A 16 0000r		     mov dl, str_len
+     93	015A  2B FA			     sub di, dx
+     94	015C  2B FA			     sub di, dx				     ;addressing to the	start of next string
+     95
+     96	015E  E2 CF			     loop build_frame
      97
-     98
-     99				     ;__PRINTSENTENCE__
-    100				     ;Printing the input string
-    101				     ;Entry: AH	= color	of sentence
-    102				     ;Destr: AX, BX, CX, DI
-    103				     ;___________________________________________________________________________;
-    104	0164			     PrintSentence	     proc
-    105	0164  8A 0E 0000r		     mov cl, str_len
-    106
-    107	0168  8B D9			     mov bx, cx
-    108	016A  D1 EB			     shr bx, 1
-    109	016C  D1 E3			     shl bx, 1
-    110	016E  F7 DB			     neg bx
-    111	0170  81 C3 07D0		     add bx, ADDRESS_OF_FRAME
-    112	0174  8B FB			     mov di, bx
+     98	0160  C3			     ret
+     99	0161				     endp
+    100				     ;___________________________________________________________________________;
+    101
+    102
+    103				     ;__PRINTSENTENCE__
+    104				     ;Printing the input string
+    105				     ;Entry: AH	= color	of sentence
+    106				     ;Destr: AX, BX, CX, DI, SI
+    107				     ;___________________________________________________________________________;
+    108	0161			     PrintSentence	     proc
+    109	0161  33 C9			     xor cx, cx
+    110	0163  B1 05			     mov cl, MAX_BRDR_WIDTH
+    111	0165  D1 E9			     shr cx, 1
+    112	0167  D1 E1			     shl cx, 1
     113
-    114	0176  A0 0082			     mov al, ds:[ADDRESS_OF_INPUT]   ;al = the 1st symbol of input
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 3
+    114	0169  BB 07D0			     mov bx, ADDRESS_OF_FRAME
+Turbo Assembler	 Version 4.1	    03/05/26 21:34:49	    Page 3
 str-out.asm
 
 
 
-    115	0179  33 DB			     xor bx, bx
-    116
-    117	017B			     building_sentence:
-    118	017B  D1 E3			     shl bx, 1
-    119	017D  26: 89 01			     mov es:[di+bx], ax
-    120	0180  D1 EB			     shr bx, 1
-    121
-    122	0182  43			     inc bx
-    123	0183  8A 87 0082		     mov al, ds:[bx+ADDRESS_OF_INPUT]
-    124
-    125	0187  E2 F2			     loop building_sentence
-    126
-    127	0189  C3			     ret
-    128	018A				     endp
-    129				     ;___________________________________________________________________________;
-    130
-    131
-    132				     ;___________________________________________________________________________;
-    133	018A			     MultiplyBxBy3   proc
-    134	018A  50 52			     push ax dx
-    135	018C  8B C3			     mov ax, bx
-    136	018E  BA 0003			     mov dx, 3
-    137	0191  F7 E2			     mul dx				     ;multiplying bx by	3
-    138	0193  8B D8			     mov bx, ax
-    139	0195  5A 58			     pop dx ax
-    140
-    141	0197  C3			     ret
-    142	0198				     endp
-    143
-    144				     end	     Start
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 4
+    115	016C  2B D9			     sub bx, cx
+    116	016E  8B FB			     mov di, bx						     ;address where to print the    +
+    117				     sentence
+    118
+    119	0170  BE 0082			     mov si, ADDRESS_OF_INPUT
+    120	0173  8A 0E 0000r		     mov cl, str_len
+    121	0177  8B E9			     mov bp, cx
+    122
+    123	0179			     building_sentence:
+    124	0179  8B DD			     mov bx, bp
+    125	017B  2B D9			     sub bx, cx
+    126	017D  83 FB 05			     cmp bx, MAX_BRDR_WIDTH		     ;if (bp - cx >= MAX_...) => transfer
+    127
+    128	0180  7C 0D			     jl	no_transfer_sentence
+    129	0182  81 C7 00A0		     add di, NEIGHBOR_BY_VERTICAL
+    130	0186  83 EF 05			     sub di, MAX_BRDR_WIDTH
+    131	0189  83 EF 05			     sub di, MAX_BRDR_WIDTH		     ;set address of a new string
+    132	018C  83 ED 05			     sub bp, MAX_BRDR_WIDTH		     ;for further conditions
+    133
+    134	018F			     no_transfer_sentence:
+    135
+    136	018F  8A 04			     mov al, ds:[si]
+    137	0191  AB			     STOSW						     ;print symbol
+    138	0192  46			     inc si
+    139
+    140	0193  E2 E4			     loop building_sentence
+    141
+    142	0195  C3			     ret
+    143	0196				     endp
+    144				     ;___________________________________________________________________________;
+    145
+    146
+    147				     ;___________________________________________________________________________;
+    148	0196			     MultiplyBxBy3   proc
+    149	0196  50 52			     push ax dx
+    150	0198  8B C3			     mov ax, bx
+    151	019A  BA 0003			     mov dx, 3
+    152	019D  F7 E2			     mul dx				     ;multiplying bx by	3
+    153	019F  8B D8			     mov bx, ax
+    154	01A1  5A 58			     pop dx ax
+    155
+    156	01A3  C3			     ret
+    157	01A4				     endp
+    158
+    159				     end	     Start
+Turbo Assembler	 Version 4.1	    03/05/26 21:34:49	    Page 4
 Symbol Table
 
 
@@ -167,7 +182,7 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "03/05/26"
 ??FILENAME			  Text	 "str-out "
-??TIME				  Text	 "20:38:04"
+??TIME				  Text	 "21:34:49"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -186,15 +201,19 @@ ADDRESS_OF_INPUT		  Number 0082
 ADDRESS_OF_INP_CNT		  Number 0080
 BL_BRDR				  Number 00C8
 BR_BRDR				  Number 00BC
-BUILDING_SENTENCE		  Near	 DGROUP:017B
-BUILD_FRAME			  Near	 DGROUP:0132
+BUILDING_SENTENCE		  Near	 DGROUP:0179
+BUILD_FRAME			  Near	 DGROUP:012F
 COUNT_TO_SKIP			  Number 0001
 FRAME_SYMB			  Byte	 DGROUP:0001
 HOR_BRDR			  Number 00CD
-MULTIPLYBXBY3			  Near	 DGROUP:018A
+MAX_BRDR_WIDTH			  Number 0005
+MULTIPLYBXBY3			  Near	 DGROUP:0196
 NEIGHBOR_BY_VERTICAL		  Number 00A0
-PRINTFRAME			  Near	 DGROUP:011A
-PRINTSENTENCE			  Near	 DGROUP:0164
+NO_TRANSFER_SENTENCE		  Near	 DGROUP:018F
+PRINTFRAME			  Near	 DGROUP:0117
+PRINTSENTENCE			  Near	 DGROUP:0161
+REL_BRDR_LENGTH			  Number 0001
+REL_BRDR_WIDTH			  Number 0001
 SPACE				  Number 0020
 START				  Near	 DGROUP:0100
 STR_LEN				  Byte	 DGROUP:0000
@@ -208,5 +227,5 @@ Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  000A Word	  Public  DATA
-  _TEXT				  16  0198 Word	  Public  CODE
+  _TEXT				  16  01A4 Word	  Public  CODE
 
