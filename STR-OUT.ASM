@@ -36,12 +36,10 @@ start:
 
 	mov al, ds:[ADDRESS_OF_INP_CNT]
 	dec al
-	mov str_len, al
+	mov str_len, al			;setting the str_len
 
 	mov ah, TEXT_COLOR
-
 	call PrintFrame
-
 	call PrintSentence
 
 	mov ax, 4c00h
@@ -109,26 +107,25 @@ PrintSentence 		proc
 	shl bx, 1
 	neg bx
 	add bx, ADDRESS_OF_FRAME
-	mov di, bx
+	mov di, bx						;di = address to print
 
 	mov al, ds:[ADDRESS_OF_INPUT]	;al = the 1st symbol of input
 	xor bx, bx
 
 building_sentence:
-	shl bx, 1
-	mov es:[di+bx], ax
-	shr bx, 1
-
+	STOSW
 	inc bx
 	mov al, ds:[bx+ADDRESS_OF_INPUT]
-
 	loop building_sentence
 
 	ret
 	endp
 ;___________________________________________________________________________;
 
-
+;__MULTIPLYBXBY3__
+;Multiplying BX by 3
+;Entry: BX
+;Exit: BX
 ;___________________________________________________________________________;
 MultiplyBxBy3	proc
 	push ax dx

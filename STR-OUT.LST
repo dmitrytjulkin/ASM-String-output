@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 1
+Turbo Assembler	 Version 4.1	    03/18/26 19:25:21	    Page 1
 str-out.asm
 
 
@@ -60,7 +60,7 @@ str-out.asm
      55				     ;Destr: AL, BX, CX, DX, DI
      56				     ;___________________________________________________________________________;
      57	011A			     PrintFrame		     proc
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 2
+Turbo Assembler	 Version 4.1	    03/18/26 19:25:21	    Page 2
 str-out.asm
 
 
@@ -81,7 +81,7 @@ str-out.asm
      71	0132  BB 0003			     mov bx, 3
      72	0135  2B D9			     sub bx, cx				     ;bx is using for addressing to frame_symb
      73
-     74	0137  E8 0050			     call MultiplyBxBy3
+     74	0137  E8 004A			     call MultiplyBxBy3
      75	013A  8A 87 0001r		     mov al, frame_symb[bx]
      76	013E  26: 89 45	FE		     mov es:[di-2], ax		     ;printing the edge	of string
      77
@@ -122,7 +122,7 @@ str-out.asm
     112	0174  8B FB			     mov di, bx
     113
     114	0176  A0 0082			     mov al, ds:[ADDRESS_OF_INPUT]   ;al = the 1st symbol of input
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 3
+Turbo Assembler	 Version 4.1	    03/18/26 19:25:21	    Page 3
 str-out.asm
 
 
@@ -130,34 +130,33 @@ str-out.asm
     115	0179  33 DB			     xor bx, bx
     116
     117	017B			     building_sentence:
-    118	017B  D1 E3			     shl bx, 1
-    119	017D  26: 89 01			     mov es:[di+bx], ax
-    120	0180  D1 EB			     shr bx, 1
-    121
-    122	0182  43			     inc bx
-    123	0183  8A 87 0082		     mov al, ds:[bx+ADDRESS_OF_INPUT]
-    124
-    125	0187  E2 F2			     loop building_sentence
+    118	017B  AB			     STOSW
+    119	017C  43			     inc bx
+    120	017D  8A 87 0082		     mov al, ds:[bx+ADDRESS_OF_INPUT]
+    121	0181  E2 F8			     loop building_sentence
+    122
+    123	0183  C3			     ret
+    124	0184				     endp
+    125				     ;___________________________________________________________________________;
     126
-    127	0189  C3			     ret
-    128	018A				     endp
-    129				     ;___________________________________________________________________________;
-    130
-    131
-    132				     ;___________________________________________________________________________;
-    133	018A			     MultiplyBxBy3   proc
-    134	018A  50 52			     push ax dx
-    135	018C  8B C3			     mov ax, bx
-    136	018E  BA 0003			     mov dx, 3
-    137	0191  F7 E2			     mul dx				     ;multiplying bx by	3
-    138	0193  8B D8			     mov bx, ax
-    139	0195  5A 58			     pop dx ax
-    140
-    141	0197  C3			     ret
-    142	0198				     endp
-    143
-    144				     end	     Start
-Turbo Assembler	 Version 4.1	    03/05/26 20:38:04	    Page 4
+    127				     ;__MULTIPLYBXBY3__
+    128				     ;Multiplying BX by	3
+    129				     ;Entry: BX
+    130				     ;Exit: BX
+    131				     ;___________________________________________________________________________;
+    132	0184			     MultiplyBxBy3   proc
+    133	0184  50 52			     push ax dx
+    134	0186  8B C3			     mov ax, bx
+    135	0188  BA 0003			     mov dx, 3
+    136	018B  F7 E2			     mul dx				     ;multiplying bx by	3
+    137	018D  8B D8			     mov bx, ax
+    138	018F  5A 58			     pop dx ax
+    139
+    140	0191  C3			     ret
+    141	0192				     endp
+    142
+    143				     end	     Start
+Turbo Assembler	 Version 4.1	    03/18/26 19:25:21	    Page 4
 Symbol Table
 
 
@@ -165,9 +164,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "03/05/26"
+??DATE				  Text	 "03/18/26"
 ??FILENAME			  Text	 "str-out "
-??TIME				  Text	 "20:38:04"
+??TIME				  Text	 "19:25:21"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -191,7 +190,7 @@ BUILD_FRAME			  Near	 DGROUP:0132
 COUNT_TO_SKIP			  Number 0001
 FRAME_SYMB			  Byte	 DGROUP:0001
 HOR_BRDR			  Number 00CD
-MULTIPLYBXBY3			  Near	 DGROUP:018A
+MULTIPLYBXBY3			  Near	 DGROUP:0184
 NEIGHBOR_BY_VERTICAL		  Number 00A0
 PRINTFRAME			  Near	 DGROUP:011A
 PRINTSENTENCE			  Near	 DGROUP:0164
@@ -208,5 +207,5 @@ Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  000A Word	  Public  DATA
-  _TEXT				  16  0198 Word	  Public  CODE
+  _TEXT				  16  0192 Word	  Public  CODE
 
